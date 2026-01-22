@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Insights Hub</title>
+    <!-- Montserrat font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Material Icon -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="Css/style.css" />
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <div class="menu-icon">
+            <span class="material-icons-outlined">menu</span>
+          </div>
+          <div class="breadcrumb">
+            <span class="material-icons-outlined">poll</span>
+            <span>Insights Hub</span>
+          </div>
+        </div>
+        <div class="header-center">
+          <div class="search-bar">
+            <input type="search" placeholder="Search insights..." />
+            <span class="material-icons-outlined">search</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="notifications">
+            <span class="material-icons-outlined">notifications</span>
+            <span class="badge notification-count">3</span>
+          </div>
+          <span class="material-icons-outlined">email</span>
+          <div
+            class="user-profile"
+            role="button"
+            tabindex="0"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            <span class="material-icons-outlined">account_circle</span>
+            <span id="userName">User</span>
+            <span class="material-icons-outlined dropdown-arrow"
+              >expand_more</span
+            >
+            <div class="user-menu" role="menu">
+              <a href="#" role="menuitem" onclick="showProfile()">Profile</a>
+              <a href="#" role="menuitem" onclick="changePassword()"
+                >Change Password</a
+              >
+              <a href="#" role="menuitem" onclick="logout()">Logout</a>
+            </div>
+          </div>
+        </div>
+      </header>
+      <!-- End Header -->
+
+      <!-- Sidebar -->
+      <aside id="sidebar">
+        <div class="sidebar-title">
+          <div class="sidebar-brand">
+            <span class="material-icons-outlined">inventory</span>
+            Inventory System
+          </div>
+          <span class="material-icons-outlined sidebar-close">close</span>
+        </div>
+
+        <ul class="sidebar-list">
+          <li class="sidebar-list-item">
+            <a href="Dashboard.html">
+              <span class="material-icons-outlined">dashboard</span>
+              Inventory Overview
+            </a>
+          </li>
+
+          <li class="sidebar-list-item">
+            <a href="inventory.html">
+              <span class="material-icons-outlined">inventory</span>
+              Product Stock
+            </a>
+          </li>
+
+          <li class="sidebar-list-item">
+            <a href="audit.html">
+              <span class="material-icons-outlined">fact_check</span>
+              Audit Trail
+            </a>
+          </li>
+
+          <li class="sidebar-list-item">
+            <a href="supplier.html">
+              <span class="material-icons-outlined">add_shopping_cart</span>
+              Supplier Orders
+            </a>
+          </li>
+
+          <li class="sidebar-list-item">
+            <a href="customer-orders.html">
+              <span class="material-icons-outlined">shopping_cart</span>
+              Customer Orders
+            </a>
+          </li>
+
+          <li class="sidebar-list-item active">
+            <a href="insights-hub.html">
+              <span class="material-icons-outlined">poll</span>
+              Insights Hub
+            </a>
+          </li>
+
+          <li class="sidebar-list-item">
+            <a href="system-config.html">
+              <span class="material-icons-outlined">settings</span>
+              System Config
+            </a>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- End Sidebar -->
+
+      <!-- Main -->
+      <main class="main-container">
+        <div class="page-header">
+          <div class="page-title-section">
+            <h1>Insights Hub</h1>
+            <p class="page-subtitle">
+              Advanced analytics and business intelligence
+            </p>
+          </div>
+        </div>
+
+        <div class="page-actions-bar">
+          <button class="btn-secondary">
+            <span class="material-icons-outlined">download</span>
+            Export Report
+          </button>
+        </div>
+
+        <div class="main-cards">
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">TOTAL PRODUCTS</p>
+              <span class="material-icons-outlined text-blue">inventory_2</span>
+            </div>
+            <span
+              class="text-primary font-weight-bold"
+              id="inventory-total-products"
+              >0</span
+            >
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">LOW STOCK</p>
+              <span class="material-icons-outlined text-orange">warning</span>
+            </div>
+            <span class="text-primary font-weight-bold" id="inventory-low-stock"
+              >0</span
+            >
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">TOTAL ORDERS</p>
+              <span class="material-icons-outlined text-blue"
+                >shopping_cart</span
+              >
+            </div>
+            <span
+              class="text-primary font-weight-bold"
+              id="customer-total-orders"
+              >0</span
+            >
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">AUDIT LOGS</p>
+              <span class="material-icons-outlined text-blue">fact_check</span>
+            </div>
+            <span class="text-primary font-weight-bold" id="audit-total-logs"
+              >0</span
+            >
+          </div>
+        </div>
+
+        <div class="charts-section">
+          <div class="charts-grid">
+            <div class="charts-card">
+              <p class="chart-title">Inventory Stock Levels</p>
+              <div id="stock-levels-chart"></div>
+            </div>
+
+            <div class="charts-card">
+              <p class="chart-title">Audit Activity Overview</p>
+              <div id="audit-actions-chart"></div>
+            </div>
+
+            <div class="charts-card">
+              <p class="chart-title">Supplier Order Status</p>
+              <div id="supplier-status-chart"></div>
+            </div>
+
+            <div class="charts-card">
+              <p class="chart-title">Customer Order Status</p>
+              <div id="customer-status-chart"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- End Main -->
+    </div>
+    <!-- Scripts -->
+    <!-- ApexCharts js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/5.3.5/apexcharts.min.js"></script>
+    <script src="js/insights.js"></script>
+  </body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Login</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #authSection {
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+      }
+      h2 {
+        margin-bottom: 30px;
+        color: #333;
+        font-weight: 300;
+      }
+      input {
+        width: 100%;
+        padding: 15px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+      }
+      input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+      }
+      button {
+        width: 100%;
+        padding: 15px;
+        margin-top: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      a {
+        display: inline-block;
+        margin-top: 20px;
+        color: #667eea;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="authSection">
+      <h2>Login</h2>
+      <input id="loginEmail" placeholder="Email" />
+      <input id="loginPassword" placeholder="Password" type="password" />
+      <button id="loginBtn">Login</button>
+      <p>Don't have an account? <a href="register.html">Register</a></p>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+      const authUrl = "https://localhost:44383/api/auth";
+
+      $(document).ready(function () {
+        $("#loginBtn").click(login);
+      });
+
+      function validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+      }
+
+      async function login() {
+        const email = $("#loginEmail").val().trim();
+        const password = $("#loginPassword").val();
+
+        // Validation
+        if (!email) {
+          alert("Email is required.");
+          return;
+        }
+        if (!validateEmail(email)) {
+          alert("Please enter a valid email address.");
+          return;
+        }
+        if (!password) {
+          alert("Password is required.");
+          return;
+        }
+
+        try {
+          const response = await fetch(`${authUrl}/login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem("token", data.token);
+            window.location.href = "index.html";
+          } else {
+            const errorText = await response.text();
+            alert("Login failed: " + errorText);
+          }
+        } catch (error) {
+          alert("Login failed: " + error.message);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Product CRUD</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f9f9f9;
+      }
+      h2 {
+        text-align: center;
+        color: #333;
+      }
+      input,
+      button {
+        margin: 5px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      #productTable {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+      }
+      #productTable th,
+      #productTable td {
+        padding: 10px;
+        text-align: left;
+      }
+      #productTable th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Product Table</h2>
+    <input id="add-name" placeholder="Product Name" />
+    <input id="add-price" placeholder="Price" type="number" />
+    <button id="addBtn">Add</button>
+
+    <table id="productTable" class="display">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/js/script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Register</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #registerSection {
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+      }
+      h2 {
+        margin-bottom: 30px;
+        color: #333;
+        font-weight: 300;
+      }
+      input {
+        width: 100%;
+        padding: 15px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+      }
+      input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+      }
+      button {
+        width: 100%;
+        padding: 15px;
+        margin-top: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      a {
+        display: inline-block;
+        margin-top: 20px;
+        color: #667eea;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="registerSection">
+      <h2>Register</h2>
+      <input id="regFullName" placeholder="Full Name" />
+      <input id="regEmail" placeholder="Email" />
+      <input id="regPassword" placeholder="Password" type="password" />
+      <button id="registerBtn">Register</button>
+      <p>Already have an account? <a href="login.html">Login</a></p>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+      const authUrl = "https://localhost:44383/api/auth";
+
+      $(document).ready(function () {
+        $("#registerBtn").click(register);
+      });
+
+      function validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+      }
+
+      async function register() {
+        const fullName = $("#regFullName").val().trim();
+        const email = $("#regEmail").val().trim();
+        const password = $("#regPassword").val();
+
+        // Validation
+        if (!fullName) {
+          alert("Full name is required.");
+          return;
+        }
+        if (!email) {
+          alert("Email is required.");
+          return;
+        }
+        if (!validateEmail(email)) {
+          alert("Please enter a valid email address.");
+          return;
+        }
+        if (!password || password.length < 6) {
+          alert("Password must be at least 6 characters long.");
+          return;
+        }
+
+        try {
+          const response = await fetch(`${authUrl}/register`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ fullName, email, password }),
+          });
+
+          if (response.ok) {
+            alert("Registration successful, please login");
+            window.location.href = "login.html";
+          } else {
+            const errorText = await response.text();
+            alert("Registration failed: " + errorText);
+          }
+        } catch (error) {
+          alert("Registration failed: " + error.message);
+        }
+      }
+    </script>
+  </body>
+</html>
