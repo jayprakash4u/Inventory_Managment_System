@@ -100,5 +100,76 @@ namespace WebApplication1.Services
             _logger.LogInformation("User validation successful: {Email}", email);
             return user;
         }
+
+        public async Task<User?> UpdateUserProfileAsync(int userId, string fullName, string phoneNumber, DateTime? dateOfBirth)
+        {
+            _logger.LogInformation("Updating user profile for user ID: {UserId}", userId);
+
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for profile update: {UserId}", userId);
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(fullName))
+                user.FullName = fullName;
+            if (!string.IsNullOrEmpty(phoneNumber))
+                user.PhoneNumber = phoneNumber;
+            if (dateOfBirth.HasValue)
+                user.DateOfBirth = dateOfBirth;
+
+            user.UpdatedAt = DateTime.UtcNow;
+
+            var updatedUser = await _userRepository.UpdateAsync(user);
+            _logger.LogInformation("User profile updated successfully: {UserId}", userId);
+            return updatedUser;
+        }
+
+        public async Task<User?> UpdateProfilePictureAsync(int userId, string pictureUrl)
+        {
+            _logger.LogInformation("Updating profile picture for user ID: {UserId}", userId);
+
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for picture update: {UserId}", userId);
+                return null;
+            }
+
+            user.ProfilePictureUrl = pictureUrl;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            var updatedUser = await _userRepository.UpdateAsync(user);
+            _logger.LogInformation("Profile picture updated successfully: {UserId}", userId);
+            return updatedUser;
+        }
+
+        public async Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword)
+        {
+            _logger.LogInformation("Changing password for user ID: {UserId}", userId);
+
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for password change: {UserId}", userId);
+                return false;
+            }
+
+            // Verify old password
+            if (!PasswordHasher.VerifyPassword(oldPassword, user.Password))
+            {
+                _logger.LogWarning("Password change failed - invalid old password for user: {UserId}", userId);
+                return false;
+            }
+
+            // Hash new password and update
+            user.Password = PasswordHasher.HashPassword(newPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            var updatedUser = await _userRepository.UpdateAsync(user);
+            _logger.LogInformation("Password changed successfully for user: {UserId}", userId);
+            return updatedUser != null;
+        }
     }
 }

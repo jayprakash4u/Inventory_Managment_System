@@ -11,5 +11,8 @@ namespace WebApplication1.Services
         Task<User?> DeleteUserAsync(int id);
         Task<User?> ExistingUserAsync(int id);
         Task<User?> ValidateUserAsync(string email, string password);
+        Task<User?> UpdateUserProfileAsync(int userId, string fullName, string phoneNumber, DateTime? dateOfBirth);
+        Task<User?> UpdateProfilePictureAsync(int userId, string pictureUrl);
+        Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword);
     }
 }

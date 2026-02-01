@@ -1599,5 +1599,105 @@
         "StatusCode": 401
       }
     ]
+  },
+  {
+    "ContainingType": "WebApplication1.Controllers.UserProfileController",
+    "Method": "GetUserProfile",
+    "RelativePath": "api/user-profile/{userId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "X-Api-Version",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApplication1.Controllers.UserProfileController",
+    "Method": "ChangePassword",
+    "RelativePath": "api/user-profile/change-password",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "WebApplication1.DTOs.ChangePasswordRequest",
+        "IsRequired": true
+      },
+      {
+        "Name": "X-Api-Version",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApplication1.Controllers.UserProfileController",
+    "Method": "GetMyProfile",
+    "RelativePath": "api/user-profile/me",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "X-Api-Version",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApplication1.Controllers.UserProfileController",
+    "Method": "UpdateProfilePicture",
+    "RelativePath": "api/user-profile/profile-picture",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "WebApplication1.DTOs.UploadProfilePictureRequest",
+        "IsRequired": true
+      },
+      {
+        "Name": "X-Api-Version",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApplication1.Controllers.UserProfileController",
+    "Method": "UpdateProfile",
+    "RelativePath": "api/user-profile/update",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "WebApplication1.DTOs.UpdateUserProfileRequest",
+        "IsRequired": true
+      },
+      {
+        "Name": "X-Api-Version",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
   }
 ]

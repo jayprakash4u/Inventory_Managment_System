@@ -359,6 +359,89 @@ class ApiClient {
       window.location.href = "login.html";
     }
   }
+
+  /**
+   * Get current user profile
+   */
+  async getUserProfile() {
+    try {
+      const response = await this.makeRequest(
+        `${this.baseUrl}/user-profile/me`,
+        {
+          method: "GET",
+        },
+      );
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update user profile information
+   */
+  async updateUserProfile(profileData) {
+    try {
+      const response = await this.makeRequest(
+        `${this.baseUrl}/user-profile/update`,
+        {
+          method: "PUT",
+          body: JSON.stringify(profileData),
+        },
+      );
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update user profile picture
+   */
+  async updateProfilePicture(pictureUrl) {
+    try {
+      const response = await this.makeRequest(
+        `${this.baseUrl}/user-profile/profile-picture`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ pictureUrl }),
+        },
+      );
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Change user password
+   */
+  async changePassword(oldPassword, newPassword, confirmPassword) {
+    try {
+      const response = await this.makeRequest(
+        `${this.baseUrl}/user-profile/change-password`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            oldPassword,
+            newPassword,
+            confirmPassword,
+          }),
+        },
+      );
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error("Error changing password:", error);
+      throw error;
+    }
+  }
 }
 
 // Create global instance

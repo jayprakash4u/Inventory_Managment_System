@@ -53,49 +53,88 @@ function initializeUserProfile() {
     USER PROFILE MENU ACTIONS
 =============================== */
 
+/**
+ * View Profile - Shows user's profile information
+ */
 function showProfile() {
   console.log("View Profile clicked");
-  // Implement profile view functionality
+  loadAndShowProfile();
 }
 
-function editProfilePicture() {
-  console.log("Change Picture clicked");
-  // Implement profile picture upload functionality
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*";
-  input.onchange = function (e) {
-    const file = e.target.files[0];
-    // Handle file upload
-    console.log("File selected:", file.name);
-  };
-  input.click();
-}
+/**
+ * Load profile data and display in modal
+ */
+async function loadAndShowProfile() {
+  try {
+    console.log("Loading profile data...");
+    const profileData = await apiClient.getUserProfile();
+    if (profileData && profileData.data) {
+      const user = profileData.data;
+      console.log("Profile data loaded:", user);
 
-function changePassword() {
-  console.log("Change Password clicked");
-  // Implement password change functionality
-  const newPassword = prompt("Enter new password:");
-  if (newPassword) {
-    console.log("Password changed");
+      // Set profile picture
+      const profilePic = user.profilePictureUrl || `https://ui-avatars.com/api/?name=${user.fullName?.charAt(0) || 'U'}&background=246dec&color=fff&size=120`;
+      document.getElementById("profileModalPicture").src = profilePic;
+
+      // Set profile information
+      document.getElementById("profileFullName").textContent = user.fullName || "N/A";
+      document.getElementById("profileEmail").textContent = user.email || "N/A";
+      document.getElementById("profilePhone").textContent = user.phoneNumber || "-";
+      document.getElementById("profileDateOfBirth").textContent = user.dateOfBirth
+        ? new Date(user.dateOfBirth).toLocaleDateString()
+        : "-";
+      document.getElementById("profileCreatedAt").textContent = new Date(user.createdAt).toLocaleDateString();
+      document.getElementById("profileUpdatedAt").textContent = user.updatedAt
+        ? new Date(user.updatedAt).toLocaleDateString()
+        : "Never";
+
+      openModal("viewProfileModal");
+    }
+  } catch (error) {
+    console.error("Error loading profile:", error);
+    alert("Error loading profile. Please try again.");
   }
 }
 
+/**
+ * Edit Profile Picture - Opens file upload modal
+ */
+function editProfilePicture() {
+  console.log("Change Picture clicked");
+  resetPictureModal();
+  openModal("changePictureModal");
+}
+
+/**
+ * Change Password - Opens password change modal
+ */
+function changePassword() {
+  console.log("Change Password clicked");
+  resetPasswordModal();
+  openModal("changePasswordModal");
+}
+
+/**
+ * Account Settings - Opens account settings
+ */
 function accountSettings() {
   console.log("Account Settings clicked");
-  // Implement account settings functionality
+  showEditProfileModal();
 }
 
+/**
+ * Help Support - Shows help information
+ */
 function helpSupport() {
   console.log("Help & Support clicked");
-  // Implement help support functionality
-  alert("Help & Support: Contact support@example.com");
+  alert("Help & Support: Contact support@example.com\n\nCommon Issues:\n1. Forgot Password - Use the login page reset option\n2. Profile Picture - JPG or PNG up to 5MB\n3. Password Requirements - Min 6 characters");
 }
 
+/**
+ * Logout - Clear authentication and redirect
+ */
 function logout() {
   console.log("Logout clicked");
-  // Clear user data and redirect to login
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  window.location.href = "login.html";
+  // Call the API client logout method
+  apiClient.logout();
 }

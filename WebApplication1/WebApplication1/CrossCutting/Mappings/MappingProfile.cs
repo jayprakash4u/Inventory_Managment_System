@@ -14,6 +14,16 @@ namespace WebApplication1.CrossCutting.Mappings
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .AfterMap((src, dest) => dest.Password = PasswordHasher.HashPassword(src.Password));
 
+            CreateMap<User, UserProfileResponse>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.ProfilePictureUrl, opt => opt.MapFrom(src => src.ProfilePictureUrl))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
+
             // Customer Order mappings
             CreateMap<CreateCustomerOrderRequest, CustomerOrder>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())

@@ -742,6 +742,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loadRecentActivity();
   loadAlertCount();
   initMiniSparklines();
+  initializeUserMenu(); // Initialize user profile menu
 
   // Add event listeners for quick actions
   const actionBtns = document.querySelectorAll(".action-btn");
@@ -779,35 +780,73 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==============================
-// User Profile Functions
+// User Profile & Menu Initialization
 // ==============================
-function showProfile() {
-  showToast("Profile view coming soon!", "info");
+
+/**
+ * Initialize user profile menu toggle
+ * NOTE: The actual menu toggle is handled by user-profile-component.js using jQuery and CSS classes
+ * This function just loads the user data
+ */
+function initializeUserMenu() {
+  // Load user profile data when menu initializes
+  loadUserMenuData();
 }
 
-function editProfilePicture() {
-  showToast("Profile picture editor coming soon!", "info");
-}
+/**
+ * Load user profile data in menu
+ */
+async function loadUserMenuData() {
+  try {
+    const profileData = await apiClient.getUserProfile();
+    if (profileData && profileData.data) {
+      const user = profileData.data;
 
-function changePassword() {
-  showToast("Password change feature coming soon!", "info");
-}
+      // Update menu profile picture
+      const menuProfilePic = document.getElementById("menuProfilePic");
+      if (menuProfilePic) {
+        menuProfilePic.src =
+          user.profilePictureUrl ||
+          `https://ui-avatars.com/api/?name=${user.fullName?.charAt(0) || "U"}&background=246dec&color=fff&size=120`;
+      }
 
-function accountSettings() {
-  showToast("Account settings coming soon!", "info");
-}
+      // Update menu user name
+      const menuUserName = document.getElementById("menuUserName");
+      if (menuUserName) {
+        menuUserName.textContent = user.fullName || "User";
+      }
 
-function helpSupport() {
-  showToast("Help & Support center coming soon!", "info");
-}
+      // Update menu user email
+      const menuUserEmail = document.getElementById("menuUserEmail");
+      if (menuUserEmail) {
+        menuUserEmail.textContent = user.email || "user@example.com";
+      }
 
-function logout() {
-  if (confirm("Are you sure you want to logout?")) {
-    apiClient.logout();
+      // Update header profile picture
+      const profilePic = document.getElementById("profilePic");
+      if (profilePic) {
+        profilePic.src =
+          user.profilePictureUrl ||
+          `https://ui-avatars.com/api/?name=${user.fullName?.charAt(0) || "U"}&background=246dec&color=fff&size=120`;
+      }
+
+      console.log("User menu data loaded:", user);
+    }
+  } catch (error) {
+    console.error("Error loading user menu data:", error);
   }
 }
 
-// Toast notification
+/**
+ * Help Support - Shows help information
+ */
+function helpSupport() {
+  alert(
+    "Help & Support: Contact support@example.com\n\nCommon Issues:\n1. Forgot Password - Use the login page reset option\n2. Profile Picture - JPG or PNG up to 5MB\n3. Password Requirements - Min 6 characters",
+  );
+}
+
+// Toast notification helper
 function showToast(message, type = "info") {
   console.log(`${type}: ${message}`);
 }

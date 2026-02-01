@@ -490,13 +490,56 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
+    <!-- Profile Modals Container -->
+    <div id="profileModalsContainer"></div>
+
     <!-- Scripts -->
     <!-- ApexCharts js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/5.3.5/apexcharts.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="js/api-client.js"></script>
+    <script src="js/profile-management.js"></script>
     <script src="js/user-profile-component.js"></script>
+
+    <script>
+      // Load profile modals after scripts are ready
+      function loadProfileModals() {
+        console.log("Loading profile modals...");
+        fetch("profile-modals.html")
+          .then((response) => response.text())
+          .then((html) => {
+            document.getElementById("profileModalsContainer").innerHTML = html;
+            console.log("Profile modals loaded successfully");
+            initializeModalHandlers();
+          })
+          .catch((error) =>
+            console.error("Error loading profile modals:", error),
+          );
+      }
+
+      // Initialize modal close button listeners
+      function initializeModalHandlers() {
+        document.querySelectorAll(".close, [data-modal]").forEach((btn) => {
+          if (
+            btn.classList.contains("close") ||
+            (btn.tagName === "BUTTON" && btn.getAttribute("data-modal"))
+          ) {
+            btn.addEventListener("click", function () {
+              const modalId =
+                this.getAttribute("data-modal") || this.closest(".modal")?.id;
+              if (modalId) {
+                closeModal(modalId);
+              }
+            });
+          }
+        });
+      }
+
+      // Load modals when DOM is ready
+      document.addEventListener("DOMContentLoaded", loadProfileModals);
+    </script>
+
     <script src="js/inventory.js"></script>
   </body>
 </html>
