@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -19,6 +19,8 @@
 
     <!-- Custom CSS    -->
     <link rel="stylesheet" href="Css/style.css" />
+    <link rel="stylesheet" href="Css/dashboard-redesign.css" />
+    <link rel="stylesheet" href="Css/user-profile.css" />
   </head>
   <body>
     <div class="grid-container">
@@ -31,12 +33,6 @@
           <div class="breadcrumb">
             <span class="material-icons-outlined">dashboard</span>
             <span>Dashboard</span>
-          </div>
-        </div>
-        <div class="header-center">
-          <div class="search-bar">
-            <input type="search" placeholder="Search inventory..." />
-            <span class="material-icons-outlined">search</span>
           </div>
         </div>
         <div class="header-right">
@@ -52,17 +48,48 @@
             aria-haspopup="true"
             aria-expanded="false"
           >
-            <span class="material-icons-outlined">account_circle</span>
-            <span id="userName">User</span>
-            <span class="material-icons-outlined dropdown-arrow"
-              >expand_more</span
-            >
+            <img src="" alt="Profile" class="profile-pic" id="profilePic" />
             <div class="user-menu" role="menu">
-              <a href="#" role="menuitem" onclick="showProfile()">Profile</a>
-              <a href="#" role="menuitem" onclick="changePassword()"
-                >Change Password</a
-              >
-              <a href="#" role="menuitem" onclick="logout()">Logout</a>
+              <div class="user-info">
+                <img
+                  src=""
+                  alt="Profile"
+                  class="menu-profile-pic"
+                  id="menuProfilePic"
+                />
+                <div class="user-details">
+                  <div class="user-display-name" id="menuUserName">User</div>
+                  <div class="user-email" id="menuUserEmail">
+                    user@example.com
+                  </div>
+                </div>
+              </div>
+              <div class="menu-divider"></div>
+              <a href="#" role="menuitem" onclick="showProfile()">
+                <span class="material-icons-outlined">person</span>
+                View Profile
+              </a>
+              <a href="#" role="menuitem" onclick="editProfilePicture()">
+                <span class="material-icons-outlined">photo_camera</span>
+                Change Picture
+              </a>
+              <a href="#" role="menuitem" onclick="changePassword()">
+                <span class="material-icons-outlined">lock</span>
+                Change Password
+              </a>
+              <a href="#" role="menuitem" onclick="accountSettings()">
+                <span class="material-icons-outlined">settings</span>
+                Account Settings
+              </a>
+              <a href="#" role="menuitem" onclick="helpSupport()">
+                <span class="material-icons-outlined">help</span>
+                Help & Support
+              </a>
+              <div class="menu-divider"></div>
+              <a href="#" role="menuitem" onclick="logout()">
+                <span class="material-icons-outlined">logout</span>
+                Logout
+              </a>
             </div>
           </div>
         </div>
@@ -144,200 +171,318 @@
           </div>
         </div>
 
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <div class="metric-header">
-              <h3>Total Products</h3>
-              <div class="trend up">
-                <span class="material-icons-outlined">trending_up</span>
-                +5.2%
-              </div>
-            </div>
-            <div class="metric-value" id="products-count">249</div>
-            <div class="metric-subtitle">Active inventory items</div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 85%"></div>
+        <!-- Key Metrics Section -->
+        <div class="metrics-overview">
+          <div class="metrics-header">
+            <h2>Key Performance Indicators</h2>
+            <div class="metrics-timeframe">
+              <span>Last 30 days</span>
+              <span class="material-icons-outlined">expand_more</span>
             </div>
           </div>
 
-          <div class="metric-card">
-            <div class="metric-header">
-              <h3>Purchase Orders</h3>
-              <div class="trend up">
-                <span class="material-icons-outlined">trending_up</span>
-                +12.8%
+          <div class="metrics-grid">
+            <div class="metric-card primary">
+              <div class="metric-icon">
+                <span class="material-icons-outlined">inventory_2</span>
+              </div>
+              <div class="metric-content">
+                <div class="metric-value" id="products-count">249</div>
+                <div class="metric-label">Total Products</div>
+                <div class="metric-change positive">
+                  <span class="material-icons-outlined">trending_up</span>
+                  +5.2% from last month
+                </div>
+              </div>
+              <div class="metric-chart">
+                <div class="mini-sparkline" id="products-sparkline"></div>
               </div>
             </div>
-            <div class="metric-value" id="purchase-orders-count">83</div>
-            <div class="metric-subtitle">Pending and completed</div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 70%"></div>
-            </div>
-          </div>
 
-          <div class="metric-card">
-            <div class="metric-header">
-              <h3>Sales Orders</h3>
-              <div class="trend up">
-                <span class="material-icons-outlined">trending_up</span>
-                +8.5%
-              </div>
-            </div>
-            <div class="metric-value" id="sales-orders-count">79</div>
-            <div class="metric-subtitle">This month performance</div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 92%"></div>
-            </div>
-          </div>
-
-          <div class="metric-card priority-high">
-            <div class="metric-header">
-              <h3>Inventory Alerts</h3>
-              <div class="trend down">
-                <span class="material-icons-outlined">trending_down</span>
-                -3.1%
-              </div>
-            </div>
-            <div class="metric-value" id="inventory-alerts-count">58</div>
-            <div class="metric-subtitle">Items needing attention</div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 45%"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="quick-actions">
-          <h4>Quick Actions</h4>
-          <div class="action-buttons">
-            <button class="action-btn primary">
-              <span class="material-icons-outlined">inventory</span>
-              Manage Stock
-            </button>
-            <button class="action-btn secondary">
-              <span class="material-icons-outlined">shopping_cart</span>
-              New Order
-            </button>
-            <button class="action-btn warning">
-              <span class="material-icons-outlined">notifications</span>
-              View Alerts
-            </button>
-            <button class="action-btn danger">
-              <span class="material-icons-outlined">report</span>
-              Generate Report
-            </button>
-          </div>
-        </div>
-
-        <div class="charts-section">
-          <div class="chart-controls">
-            <div class="control-group">
-              <label for="time-range">Time Range</label>
-              <select id="time-range" class="control-group select">
-                <option value="7d">Last 7 days</option>
-                <option value="30d">Last 30 days</option>
-                <option value="90d">Last 90 days</option>
-                <option value="1y">Last year</option>
-              </select>
-            </div>
-            <div class="control-group">
-              <label for="category">Category</label>
-              <select id="category" class="control-group select">
-                <option value="all">All Categories</option>
-                <option value="electronics">Electronics</option>
-                <option value="apparel">Apparel</option>
-              </select>
-            </div>
-            <button class="btn-primary export-chart">
-              <span class="material-icons-outlined">download</span>
-              Export Charts
-            </button>
-          </div>
-
-          <div class="charts-grid">
-            <div class="charts-card featured">
-              <div class="chart-header">
-                <h4>Revenue vs Orders</h4>
-                <div class="chart-badge">Featured</div>
-              </div>
-              <div id="area-chart"></div>
-            </div>
-
-            <div class="charts-card">
-              <p class="chart-title">Top 5 Products</p>
-              <div id="bar-chart"></div>
-            </div>
-
-            <div class="charts-card">
-              <p class="chart-title">Sales by Category</p>
-              <div id="pie-chart"></div>
-            </div>
-
-            <div class="charts-card">
-              <p class="chart-title">Inventory Trends</p>
-              <div id="line-chart"></div>
-            </div>
-
-            <div class="charts-card">
-              <p class="chart-title">Stock Distribution</p>
-              <div id="donut-chart"></div>
-            </div>
-
-            <div class="charts-card">
-              <p class="chart-title">Monthly Performance</p>
-              <div id="radar-chart"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="activity-feed">
-          <h4>Recent Activity</h4>
-          <div class="activity-list">
-            <div class="activity-item">
-              <div class="activity-icon success">
-                <span class="material-icons-outlined">inventory</span>
-              </div>
-              <div class="activity-content">
-                <p>
-                  <strong>New Product Added:</strong> iPhone 14 Pro Max added to
-                  inventory
-                </p>
-                <div class="activity-time">2 hours ago</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-icon warning">
-                <span class="material-icons-outlined">warning</span>
-              </div>
-              <div class="activity-content">
-                <p>
-                  <strong>Low Stock Alert:</strong> Samsung Galaxy S21 below
-                  threshold
-                </p>
-                <div class="activity-time">4 hours ago</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-icon info">
+            <div class="metric-card success">
+              <div class="metric-icon">
                 <span class="material-icons-outlined">shopping_cart</span>
               </div>
-              <div class="activity-content">
-                <p>
-                  <strong>Order Completed:</strong> Purchase order #PO-1234
-                  delivered
-                </p>
-                <div class="activity-time">6 hours ago</div>
+              <div class="metric-content">
+                <div class="metric-value" id="purchase-orders-count">83</div>
+                <div class="metric-label">Purchase Orders</div>
+                <div class="metric-change positive">
+                  <span class="material-icons-outlined">trending_up</span>
+                  +12.8% from last month
+                </div>
+              </div>
+              <div class="metric-chart">
+                <div class="mini-sparkline" id="orders-sparkline"></div>
               </div>
             </div>
-            <div class="activity-item">
-              <div class="activity-icon success">
-                <span class="material-icons-outlined">trending_up</span>
+
+            <div class="metric-card info">
+              <div class="metric-icon">
+                <span class="material-icons-outlined">sell</span>
               </div>
-              <div class="activity-content">
-                <p>
-                  <strong>Sales Milestone:</strong> Monthly sales target
-                  achieved
-                </p>
-                <div class="activity-time">1 day ago</div>
+              <div class="metric-content">
+                <div class="metric-value" id="sales-orders-count">79</div>
+                <div class="metric-label">Sales Orders</div>
+                <div class="metric-change positive">
+                  <span class="material-icons-outlined">trending_up</span>
+                  +8.5% from last month
+                </div>
+              </div>
+              <div class="metric-chart">
+                <div class="mini-sparkline" id="sales-sparkline"></div>
+              </div>
+            </div>
+
+            <div class="metric-card warning">
+              <div class="metric-icon">
+                <span class="material-icons-outlined">warning</span>
+              </div>
+              <div class="metric-content">
+                <div class="metric-value" id="inventory-alerts-count">58</div>
+                <div class="metric-label">Inventory Alerts</div>
+                <div class="metric-change negative">
+                  <span class="material-icons-outlined">trending_down</span>
+                  -3.1% from last month
+                </div>
+              </div>
+              <div class="metric-chart">
+                <div class="mini-sparkline" id="alerts-sparkline"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions & Recent Activity -->
+        <div class="dashboard-actions-activity">
+          <div class="quick-actions-panel">
+            <div class="panel-header">
+              <h3>Quick Actions</h3>
+              <span class="panel-subtitle">Common tasks and shortcuts</span>
+            </div>
+            <div class="action-grid">
+              <a href="inventory.html" class="action-card">
+                <div class="action-icon primary">
+                  <span class="material-icons-outlined">inventory</span>
+                </div>
+                <div class="action-content">
+                  <h4>Manage Stock</h4>
+                  <p>Add, edit, or remove products</p>
+                </div>
+                <span class="material-icons-outlined action-arrow"
+                  >arrow_forward</span
+                >
+              </a>
+
+              <a href="supplier.html" class="action-card">
+                <div class="action-icon success">
+                  <span class="material-icons-outlined">add_shopping_cart</span>
+                </div>
+                <div class="action-content">
+                  <h4>New Purchase Order</h4>
+                  <p>Create supplier orders</p>
+                </div>
+                <span class="material-icons-outlined action-arrow"
+                  >arrow_forward</span
+                >
+              </a>
+
+              <a href="customer-orders.html" class="action-card">
+                <div class="action-icon info">
+                  <span class="material-icons-outlined">shopping_cart</span>
+                </div>
+                <div class="action-content">
+                  <h4>Process Sales Order</h4>
+                  <p>Handle customer orders</p>
+                </div>
+                <span class="material-icons-outlined action-arrow"
+                  >arrow_forward</span
+                >
+              </a>
+
+              <div class="action-card alerts-card" onclick="showAlerts()">
+                <div class="action-icon warning">
+                  <span class="material-icons-outlined">notifications</span>
+                  <span class="alert-badge" id="alert-badge">3</span>
+                </div>
+                <div class="action-content">
+                  <h4>View Alerts</h4>
+                  <p>Check inventory alerts</p>
+                </div>
+                <span class="material-icons-outlined action-arrow"
+                  >arrow_forward</span
+                >
+              </div>
+
+              <a href="insights-hub.html" class="action-card">
+                <div class="action-icon secondary">
+                  <span class="material-icons-outlined">analytics</span>
+                </div>
+                <div class="action-content">
+                  <h4>View Reports</h4>
+                  <p>Generate analytics reports</p>
+                </div>
+                <span class="material-icons-outlined action-arrow"
+                  >arrow_forward</span
+                >
+              </a>
+
+              <div class="action-card" onclick="showSystemConfig()">
+                <div class="action-icon tertiary">
+                  <span class="material-icons-outlined">settings</span>
+                </div>
+                <div class="action-content">
+                  <h4>System Settings</h4>
+                  <p>Configure system preferences</p>
+                </div>
+                <span class="material-icons-outlined action-arrow"
+                  >arrow_forward</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="recent-activity-panel">
+            <div class="panel-header">
+              <h3>Recent Activity</h3>
+              <a href="audit.html" class="view-all-link">View All</a>
+            </div>
+            <div class="activity-timeline" id="activity-timeline">
+              <!-- Activity items will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Dashboard -->
+        <div class="analytics-dashboard">
+          <div class="analytics-header">
+            <h2>Analytics & Insights</h2>
+            <div class="analytics-controls">
+              <div class="control-group">
+                <label for="time-range">Time Range</label>
+                <select id="time-range" class="control-select">
+                  <option value="7d">Last 7 days</option>
+                  <option value="30d">Last 30 days</option>
+                  <option value="90d">Last 90 days</option>
+                  <option value="1y">Last year</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label for="category-filter">Category</label>
+                <select id="category-filter" class="control-select">
+                  <option value="all">All Categories</option>
+                  <option value="electronics">Electronics</option>
+                  <option value="apparel">Apparel</option>
+                  <option value="home">Home & Garden</option>
+                  <option value="books">Books</option>
+                  <option value="sports">Sports</option>
+                </select>
+              </div>
+              <button class="btn-secondary export-btn" onclick="exportCharts()">
+                <span class="material-icons-outlined">download</span>
+                Export Data
+              </button>
+            </div>
+          </div>
+
+          <div class="analytics-grid">
+            <!-- Revenue & Orders Trend -->
+            <div class="analytics-card large featured">
+              <div class="card-header">
+                <div class="card-title-section">
+                  <h3>Revenue & Orders Trend</h3>
+                  <span class="card-subtitle"
+                    >Monthly performance overview</span
+                  >
+                </div>
+                <div class="card-actions">
+                  <span class="featured-badge">Featured</span>
+                  <button class="card-menu-btn" onclick="toggleCardMenu(this)">
+                    <span class="material-icons-outlined">more_vert</span>
+                  </button>
+                </div>
+              </div>
+              <div class="card-content">
+                <div id="area-chart" class="chart-container"></div>
+              </div>
+            </div>
+
+            <!-- Top Products -->
+            <div class="analytics-card medium">
+              <div class="card-header">
+                <div class="card-title-section">
+                  <h3>Top Products</h3>
+                  <span class="card-subtitle">Best performing items</span>
+                </div>
+                <button class="card-menu-btn" onclick="toggleCardMenu(this)">
+                  <span class="material-icons-outlined">more_vert</span>
+                </button>
+              </div>
+              <div class="card-content">
+                <div id="bar-chart" class="chart-container"></div>
+              </div>
+            </div>
+
+            <!-- Sales by Category -->
+            <div class="analytics-card medium">
+              <div class="card-header">
+                <div class="card-title-section">
+                  <h3>Sales by Category</h3>
+                  <span class="card-subtitle">Category distribution</span>
+                </div>
+                <button class="card-menu-btn" onclick="toggleCardMenu(this)">
+                  <span class="material-icons-outlined">more_vert</span>
+                </button>
+              </div>
+              <div class="card-content">
+                <div id="pie-chart" class="chart-container"></div>
+              </div>
+            </div>
+
+            <!-- Inventory Health -->
+            <div class="analytics-card medium">
+              <div class="card-header">
+                <div class="card-title-section">
+                  <h3>Inventory Health</h3>
+                  <span class="card-subtitle">Stock levels overview</span>
+                </div>
+                <button class="card-menu-btn" onclick="toggleCardMenu(this)">
+                  <span class="material-icons-outlined">more_vert</span>
+                </button>
+              </div>
+              <div class="card-content">
+                <div id="donut-chart" class="chart-container"></div>
+              </div>
+            </div>
+
+            <!-- Inventory Trends -->
+            <div class="analytics-card medium">
+              <div class="card-header">
+                <div class="card-title-section">
+                  <h3>Inventory Trends</h3>
+                  <span class="card-subtitle">Stock movement over time</span>
+                </div>
+                <button class="card-menu-btn" onclick="toggleCardMenu(this)">
+                  <span class="material-icons-outlined">more_vert</span>
+                </button>
+              </div>
+              <div class="card-content">
+                <div id="line-chart" class="chart-container"></div>
+              </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="analytics-card medium">
+              <div class="card-header">
+                <div class="card-title-section">
+                  <h3>Performance Metrics</h3>
+                  <span class="card-subtitle">Key performance indicators</span>
+                </div>
+                <button class="card-menu-btn" onclick="toggleCardMenu(this)">
+                  <span class="material-icons-outlined">more_vert</span>
+                </button>
+              </div>
+              <div class="card-content">
+                <div id="radar-chart" class="chart-container"></div>
               </div>
             </div>
           </div>
@@ -390,6 +535,9 @@
     <!-- Scripts -->
     <!---ApexCharts js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/5.3.5/apexcharts.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/user-profile-component.js"></script>
     <script src="js/dashboard.js"></script>
   </body>
 </html>

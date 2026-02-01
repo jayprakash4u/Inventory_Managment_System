@@ -3,7 +3,7 @@
 // Base URL of your backend API
 const API_BASE = "https://localhost:44383/api";
 
-const token = localStorage.getItem("token");
+const token = localStorage.getItem("accessToken");
 
 if (!token) {
   window.location.href = "login.html";
@@ -84,7 +84,7 @@ async function initializeOrdersTable() {
       url: `${API_BASE}/supplier-orders`,
       type: "GET",
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
       dataSrc: "", // Tell DataTables the response is a plain array
       data: function (d) {
@@ -201,7 +201,7 @@ async function loadChartsData() {
     // Load orders summary
     const summaryResponse = await fetch(`${API_BASE}/supplier-orders/summary`, {
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
     });
 
@@ -215,7 +215,7 @@ async function loadChartsData() {
       `${API_BASE}/supplier-orders/chart/status`,
       {
         headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
+          Authorization: "Bearer " + localStorage.getItem("accessToken"),
         },
       },
     );
@@ -315,7 +315,7 @@ async function editOrder(orderId) {
   try {
     const response = await fetch(`${API_BASE}/supplier-orders/${orderId}`, {
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
     });
 
@@ -385,7 +385,7 @@ async function viewOrder(orderId) {
   try {
     const response = await fetch(`${API_BASE}/supplier-orders/${orderId}`, {
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
     });
 
@@ -633,7 +633,7 @@ async function submitOrderForm() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("token"),
+          Authorization: "Bearer " + localStorage.getItem("accessToken"),
         },
         body: JSON.stringify(orderData),
       });
@@ -643,7 +643,7 @@ async function submitOrderForm() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("token"),
+          Authorization: "Bearer " + localStorage.getItem("accessToken"),
         },
         body: JSON.stringify(orderData),
       });

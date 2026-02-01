@@ -1,38 +1,53 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WebApplication1.DTOs;
 using WebApplication1.Model;
 using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/products")]
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _service;
-        public ProductsController(IProductService service)
+        private readonly ILogger<ProductsController> _logger;
+
+        public ProductsController(IProductService service, ILogger<ProductsController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllProducts([FromQuery] string? category = null, [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] string? status = null)
         {
+            _logger.LogInformation("Retrieving products with filters - Category: {Category}, MinPrice: {MinPrice}, MaxPrice: {MaxPrice}, Status: {Status}",
+                category, minPrice, maxPrice, status);
             var products = await _service.GetAllProductsAsync(category, minPrice, maxPrice, status);
+            _logger.LogInformation("Retrieved {Count} products", products.Count());
             return Ok(products);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProduct(int id)
         {
+            _logger.LogInformation("Retrieving product with ID: {ProductId}", id);
             var product = await _service.GetProductByIdAsync(id);
-            if (product == null) return NotFound();
+            if (product == null)
+            {
+                _logger.LogWarning("Product not found with ID: {ProductId}", id);
+                return NotFound();
+            }
+            _logger.LogInformation("Product retrieved successfully: {ProductName}", product.Name);
             return Ok(product);
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateProduct([FromBody] CreateProductRequest request)
         {
+            _logger.LogInformation("Creating new product: {ProductName}", request.Name);
             var product = new Product
             {
                 Name = request.Name,
@@ -43,6 +58,7 @@ namespace WebApplication1.Controllers
                 Description = request.Description
             };
             await _service.AddProductAsync(product);
+            _logger.LogInformation("Product created successfully with ID: {ProductId}", product.Id);
             return Ok(product);
         }
 

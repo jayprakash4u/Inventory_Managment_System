@@ -16,6 +16,8 @@
     />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="Css/style.css" />
+    <link rel="stylesheet" href="Css/user-profile.css" />
+    <link rel="stylesheet" href="Css/insights.css" />
   </head>
   <body>
     <div class="grid-container">
@@ -28,12 +30,6 @@
           <div class="breadcrumb">
             <span class="material-icons-outlined">poll</span>
             <span>Insights Hub</span>
-          </div>
-        </div>
-        <div class="header-center">
-          <div class="search-bar">
-            <input type="search" placeholder="Search insights..." />
-            <span class="material-icons-outlined">search</span>
           </div>
         </div>
         <div class="header-right">
@@ -49,17 +45,48 @@
             aria-haspopup="true"
             aria-expanded="false"
           >
-            <span class="material-icons-outlined">account_circle</span>
-            <span id="userName">User</span>
-            <span class="material-icons-outlined dropdown-arrow"
-              >expand_more</span
-            >
+            <img src="" alt="Profile" class="profile-pic" id="profilePic" />
             <div class="user-menu" role="menu">
-              <a href="#" role="menuitem" onclick="showProfile()">Profile</a>
-              <a href="#" role="menuitem" onclick="changePassword()"
-                >Change Password</a
-              >
-              <a href="#" role="menuitem" onclick="logout()">Logout</a>
+              <div class="user-info">
+                <img
+                  src=""
+                  alt="Profile"
+                  class="menu-profile-pic"
+                  id="menuProfilePic"
+                />
+                <div class="user-details">
+                  <div class="user-display-name" id="menuUserName">User</div>
+                  <div class="user-email" id="menuUserEmail">
+                    user@example.com
+                  </div>
+                </div>
+              </div>
+              <div class="menu-divider"></div>
+              <a href="#" role="menuitem" onclick="showProfile()">
+                <span class="material-icons-outlined">person</span>
+                View Profile
+              </a>
+              <a href="#" role="menuitem" onclick="editProfilePicture()">
+                <span class="material-icons-outlined">photo_camera</span>
+                Change Picture
+              </a>
+              <a href="#" role="menuitem" onclick="changePassword()">
+                <span class="material-icons-outlined">lock</span>
+                Change Password
+              </a>
+              <a href="#" role="menuitem" onclick="accountSettings()">
+                <span class="material-icons-outlined">settings</span>
+                Account Settings
+              </a>
+              <a href="#" role="menuitem" onclick="helpSupport()">
+                <span class="material-icons-outlined">help</span>
+                Help & Support
+              </a>
+              <div class="menu-divider"></div>
+              <a href="#" role="menuitem" onclick="logout()">
+                <span class="material-icons-outlined">logout</span>
+                Logout
+              </a>
             </div>
           </div>
         </div>
@@ -173,6 +200,32 @@
 
           <div class="card">
             <div class="card-inner">
+              <p class="text-primary">OUT OF STOCK</p>
+              <span class="material-icons-outlined text-red">error</span>
+            </div>
+            <span
+              class="text-primary font-weight-bold"
+              id="inventory-out-of-stock"
+              >0</span
+            >
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">INVENTORY VALUE</p>
+              <span class="material-icons-outlined text-green"
+                >attach_money</span
+              >
+            </div>
+            <span
+              class="text-primary font-weight-bold"
+              id="inventory-total-value"
+              >$0</span
+            >
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
               <p class="text-primary">TOTAL ORDERS</p>
               <span class="material-icons-outlined text-blue"
                 >shopping_cart</span
@@ -187,10 +240,86 @@
 
           <div class="card">
             <div class="card-inner">
+              <p class="text-primary">TOTAL REVENUE</p>
+              <span class="material-icons-outlined text-green"
+                >trending_up</span
+              >
+            </div>
+            <span
+              class="text-primary font-weight-bold"
+              id="customer-total-revenue"
+              >$0</span
+            >
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">SUPPLIER ORDERS</p>
+              <span class="material-icons-outlined text-blue"
+                >add_shopping_cart</span
+              >
+            </div>
+            <span
+              class="text-primary font-weight-bold"
+              id="supplier-total-orders"
+              >0</span
+            >
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">TOTAL PURCHASES</p>
+              <span class="material-icons-outlined text-orange"
+                >shopping_bag</span
+              >
+            </div>
+            <span
+              class="text-primary font-weight-bold"
+              id="supplier-total-purchases"
+              >$0</span
+            >
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
               <p class="text-primary">AUDIT LOGS</p>
               <span class="material-icons-outlined text-blue">fact_check</span>
             </div>
             <span class="text-primary font-weight-bold" id="audit-total-logs"
+              >0</span
+            >
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">TODAY ACTIVITIES</p>
+              <span class="material-icons-outlined text-green">today</span>
+            </div>
+            <span
+              class="text-primary font-weight-bold"
+              id="audit-today-activities"
+              >0</span
+            >
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">WARNINGS</p>
+              <span class="material-icons-outlined text-orange">warning</span>
+            </div>
+            <span class="text-primary font-weight-bold" id="audit-warnings"
+              >0</span
+            >
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">CRITICAL EVENTS</p>
+              <span class="material-icons-outlined text-red">error</span>
+            </div>
+            <span
+              class="text-primary font-weight-bold"
+              id="audit-critical-events"
               >0</span
             >
           </div>
@@ -204,8 +333,18 @@
             </div>
 
             <div class="charts-card">
+              <p class="chart-title">Revenue vs Purchases (Last 6 Months)</p>
+              <div id="revenue-purchases-chart"></div>
+            </div>
+
+            <div class="charts-card">
               <p class="chart-title">Audit Activity Overview</p>
               <div id="audit-actions-chart"></div>
+            </div>
+
+            <div class="charts-card">
+              <p class="chart-title">Audit Trends (Last 7 Days)</p>
+              <div id="audit-trends-chart"></div>
             </div>
 
             <div class="charts-card">
@@ -217,6 +356,16 @@
               <p class="chart-title">Customer Order Status</p>
               <div id="customer-status-chart"></div>
             </div>
+
+            <div class="charts-card">
+              <p class="chart-title">Order Trends (Last 6 Months)</p>
+              <div id="order-trends-chart"></div>
+            </div>
+
+            <div class="charts-card">
+              <p class="chart-title">Inventory by Category</p>
+              <div id="inventory-category-chart"></div>
+            </div>
           </div>
         </div>
       </main>
@@ -226,6 +375,9 @@
     <!-- Scripts -->
     <!-- ApexCharts js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/5.3.5/apexcharts.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/user-profile-component.js"></script>
     <script src="js/insights.js"></script>
   </body>
 </html>

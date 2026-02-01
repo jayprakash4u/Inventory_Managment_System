@@ -1,3 +1,10 @@
+/* ===============================
+   AUTHENTICATION CHECK
+=============================== */
+if (!apiClient.isAuthenticated()) {
+  window.location.href = "login.html";
+}
+
 // ===============================
 // Audit Trail page JavaScript
 // ===============================
@@ -90,16 +97,16 @@ function displayValidationErrors(errors) {
     ajax: {
       url: API_BASE + "/audit/logs",
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
       data: function (d) {
-        // Add custom filters to the request
-        d.startDate = currentFilters.startDate;
-        d.endDate = currentFilters.endDate;
-        d.user = currentFilters.user;
-        d.action = currentFilters.action;
-        d.module = currentFilters.module;
-        d.severity = currentFilters.severity;
+        // Add custom filters to the request only if they have values
+        if (currentFilters.startDate) d.startDate = currentFilters.startDate;
+        if (currentFilters.endDate) d.endDate = currentFilters.endDate;
+        if (currentFilters.user) d.user = currentFilters.user;
+        if (currentFilters.action) d.action = currentFilters.action;
+        if (currentFilters.module) d.module = currentFilters.module;
+        if (currentFilters.severity) d.severity = currentFilters.severity;
         d.page = Math.floor(d.start / d.length) + 1 || 1; // Ensure it's at least 1
         d.pageSize = d.length || 25; // Default page size
       },
@@ -253,7 +260,7 @@ async function loadAuditStatistics() {
   try {
     const response = await fetch(`${API_BASE}/audit/statistics`, {
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
     });
 
@@ -332,7 +339,7 @@ async function viewAuditDetails(auditId) {
   try {
     const response = await fetch(`${API_BASE}/audit/logs/${auditId}`, {
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
     });
 
@@ -420,7 +427,7 @@ async function exportAuditLogs() {
 
     const response = await fetch(`${API_BASE}/audit/logs?${params}`, {
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
     });
 

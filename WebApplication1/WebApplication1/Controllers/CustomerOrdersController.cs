@@ -1,18 +1,26 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.DTOs;
 using WebApplication1.Model;
 using WebApplication1.Services;
+using AutoMapper;
 
 namespace WebApplication1.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/customer-orders")]
     public class CustomerOrdersController : ControllerBase
     {
         private readonly ICustomerOrderService _service;
-        public CustomerOrdersController(ICustomerOrderService service)
+        private readonly ILogger<CustomerOrdersController> _logger;
+        private readonly IMapper _mapper;
+
+        public CustomerOrdersController(ICustomerOrderService service, ILogger<CustomerOrdersController> logger, IMapper mapper)
         {
             _service = service;
+            _logger = logger;
+            _mapper = mapper;
         }
 
 
@@ -25,9 +33,14 @@ namespace WebApplication1.Controllers
             [FromQuery] int start = 0,
             [FromQuery] int length = 10)
         {
+            _logger.LogInformation("Retrieving customer orders with filters: Status={Status}, Customer={Customer}, DateRange={DateRange}, Page={Page}, PageSize={PageSize}",
+                status, customer, dateRange, (start / length) + 1, length);
+
             var allOrders = await _service.GetAllCustomerOrdersAsync(status, customer, dateRange);
             var totalRecords = allOrders.Count();
             var data = allOrders.Skip(start).Take(length).ToList();
+
+            _logger.LogInformation("Retrieved {Count} customer orders (Total: {TotalRecords})", data.Count, totalRecords);
 
             return Ok(new
             {
@@ -41,8 +54,16 @@ namespace WebApplication1.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCustomerOrder(int id)
         {
+            _logger.LogInformation("Retrieving customer order by ID: {OrderId}", id);
+
             var order = await _service.GetCustomerOrderByIdAsync(id);
-            if (order == null) return NotFound();
+            if (order == null)
+            {
+                _logger.LogWarning("Customer order not found: {OrderId}", id);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Retrieved customer order: {OrderId}", id);
             return Ok(order);
         }
 
@@ -50,16 +71,14 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCustomerOrder([FromBody] CreateCustomerOrderRequest request)
         {
-            var order = new CustomerOrder
-            {
-                OrderId = request.OrderId,
-                CustomerName = request.CustomerName,
-                OrderDate = request.OrderDate,
-                Items = request.Items,
-                TotalValue = request.TotalValue,
-                Status = request.Status
-            };
+            _logger.LogInformation("Creating customer order: OrderId={OrderId}, Customer={CustomerName}, TotalValue={TotalValue}",
+                request.OrderId, request.CustomerName, request.TotalValue);
+
+            var order = _mapper.Map<CustomerOrder>(request);
             await _service.AddCustomerOrderAsync(order);
+
+            _logger.LogInformation("Customer order created successfully: {OrderId}", order.Id);
+
             return Ok(order);
         }
 
@@ -67,18 +86,22 @@ namespace WebApplication1.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCustomerOrder(int id, [FromBody] UpdateCustomerOrderRequest request)
         {
-            var order = await _service.GetCustomerOrderByIdAsync(id);
-            if (order == null) return NotFound();
+            _logger.LogInformation("Updating customer order: {OrderId}", id);
 
-            if (request.OrderId != null) order.OrderId = request.OrderId;
-            if (request.CustomerName != null) order.CustomerName = request.CustomerName;
-            if (request.OrderDate.HasValue) order.OrderDate = request.OrderDate.Value;
-            if (request.Items != null) order.Items = request.Items;
-            if (request.TotalValue.HasValue) order.TotalValue = request.TotalValue.Value;
-            if (request.Status != null) order.Status = request.Status;
+            var order = await _service.GetCustomerOrderByIdAsync(id);
+            if (order == null)
+            {
+                _logger.LogWarning("Customer order not found for update: {OrderId}", id);
+                return NotFound();
+            }
+
+            _mapper.Map(request, order);
             order.UpdatedAt = DateTime.UtcNow;
 
             await _service.UpdateCustomerOrderAsync(order);
+
+            _logger.LogInformation("Customer order updated successfully: {OrderId}", id);
+
             return Ok(order);
         }
 
@@ -86,10 +109,19 @@ namespace WebApplication1.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCustomerOrder(int id)
         {
+            _logger.LogInformation("Deleting customer order: {OrderId}", id);
+
             var order = await _service.GetCustomerOrderByIdAsync(id);
-            if (order == null) return NotFound();
+            if (order == null)
+            {
+                _logger.LogWarning("Customer order not found for deletion: {OrderId}", id);
+                return NotFound();
+            }
 
             await _service.DeleteCustomerOrderAsync(id);
+
+            _logger.LogInformation("Customer order deleted successfully: {OrderId}", id);
+
             return NoContent();
         }
 
@@ -97,7 +129,12 @@ namespace WebApplication1.Controllers
         [HttpGet("chart/status")]
         public async Task<IActionResult> GetOrdersByStatus()
         {
+            _logger.LogInformation("Retrieving orders by status chart data");
+
             var data = await _service.GetOrdersByStatusAsync();
+
+            _logger.LogInformation("Retrieved orders by status data with {Count} entries", data.Count());
+
             return Ok(data);
         }
 
@@ -105,7 +142,12 @@ namespace WebApplication1.Controllers
         [HttpGet("summary")]
         public async Task<IActionResult> GetSummary()
         {
+            _logger.LogInformation("Retrieving customer orders summary");
+
             var data = await _service.GetSummaryAsync();
+
+            _logger.LogInformation("Retrieved customer orders summary: {@Summary}", data);
+
             return Ok(data);
         }
     }

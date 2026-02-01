@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.DTOs;
 using WebApplication1.Model;
@@ -5,6 +6,7 @@ using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/supplier-orders")]
     public class SupplierOrdersController : ControllerBase

@@ -6,7 +6,7 @@
 // All product-related requests will use this
 const API_BASE = "https://localhost:44383/api";
 
-const token = localStorage.getItem("token");
+const token = localStorage.getItem("accessToken");
 
 // Function to determine severity based on action type
 function getSeverityForAction(action) {
@@ -39,14 +39,7 @@ async function logAuditEvent(action, module, entity, details, severity = null) {
 
     console.log("🔍 AUDIT LOG: Attempting to log audit event:", auditData);
 
-    const response = await fetch(`${API_BASE}/audit`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-      body: JSON.stringify(auditData),
-    });
+    const response = await apiClient.post("/audit", auditData);
 
     console.log(
       "🔍 AUDIT LOG: API Response:",
@@ -69,7 +62,10 @@ async function logAuditEvent(action, module, entity, details, severity = null) {
   }
 }
 
-if (!token) {
+/* ===============================
+   AUTHENTICATION CHECK
+============================== */
+if (!apiClient.isAuthenticated()) {
   window.location.href = "login.html";
 }
 
@@ -200,7 +196,14 @@ function displayValidationErrors(errors) {
     ajax: {
       url: API_BASE + "/products",
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
+      },
+      data: function (d) {
+        // Add custom filters to the request
+        d.category = currentFilters.category;
+        d.minPrice = currentFilters.minPrice;
+        d.maxPrice = currentFilters.maxPrice;
+        d.status = currentFilters.status;
       },
       dataSrc: "",
     },
@@ -353,7 +356,7 @@ function displayValidationErrors(errors) {
     try {
       const response = await fetch(`${API_BASE}/products/${productId}`, {
         headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
+          Authorization: "Bearer " + localStorage.getItem("accessToken"),
         },
       });
 
@@ -468,7 +471,7 @@ function displayValidationErrors(errors) {
         method: method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("token"),
+          Authorization: "Bearer " + localStorage.getItem("accessToken"),
         },
         body: JSON.stringify(productData),
       });
@@ -531,22 +534,14 @@ function displayValidationErrors(errors) {
   //-------- Update summary cards from server----------->
   async function updateSummaryCards() {
     try {
-      const response = await fetch(`${API_BASE}/products/summary`, {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        document.getElementById("total-products").textContent =
-          data.totalProducts;
-        document.getElementById("low-stock").textContent = data.lowStock;
-        document.getElementById("out-of-stock").textContent = data.outOfStock;
-        document.getElementById("total-value").textContent =
-          `$${data.totalValue.toFixed(2)}`;
-      } else {
-        console.error("Failed to fetch summary data");
-      }
+      const response = await apiClient.get("/products/summary");
+      const data = await response.json();
+      document.getElementById("total-products").textContent =
+        data.totalProducts;
+      document.getElementById("low-stock").textContent = data.lowStock;
+      document.getElementById("out-of-stock").textContent = data.outOfStock;
+      document.getElementById("total-value").textContent =
+        `$${data.totalValue.toFixed(2)}`;
     } catch (error) {
       console.error("Error fetching summary:", error);
     }
@@ -557,69 +552,51 @@ function displayValidationErrors(errors) {
   async function updateCharts() {
     try {
       // Category chart
-      const categoryResponse = await fetch(
-        `${API_BASE}/products/chart/category`,
+      const categoryResponse = await apiClient.get("/products/chart/category");
+      const categoryData = await categoryResponse.json();
+      const categoryLabels = Object.keys(categoryData);
+      const categoryValues = Object.values(categoryData);
+
+      if (categoryChart) {
+        categoryChart.destroy();
+      }
+      categoryChart = new ApexCharts(
+        document.querySelector("#inventory-category-chart"),
         {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("token"),
-          },
+          series: categoryValues,
+          chart: { type: "pie", height: 300 },
+          labels: categoryLabels,
+          title: { text: "Products by Category" },
         },
       );
-      if (categoryResponse.ok) {
-        const categoryData = await categoryResponse.json();
-        const categoryLabels = Object.keys(categoryData);
-        const categoryValues = Object.values(categoryData);
-
-        if (categoryChart) {
-          categoryChart.destroy();
-        }
-        categoryChart = new ApexCharts(
-          document.querySelector("#inventory-category-chart"),
-          {
-            series: categoryValues,
-            chart: { type: "pie", height: 300 },
-            labels: categoryLabels,
-            title: { text: "Products by Category" },
-          },
-        );
-        categoryChart.render();
-      }
+      categoryChart.render();
 
       // Stock levels chart
-      const stockResponse = await fetch(
-        `${API_BASE}/products/chart/stock-levels`,
+      const stockResponse = await apiClient.get("/products/chart/stock-levels");
+      const stockData = await stockResponse.json();
+
+      if (stockChart) {
+        stockChart.destroy();
+      }
+      stockChart = new ApexCharts(
+        document.querySelector("#stock-levels-chart"),
         {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("token"),
-          },
+          series: [
+            {
+              name: "Products",
+              data: [
+                stockData["In Stock"],
+                stockData["Low Stock"],
+                stockData["Out of Stock"],
+              ],
+            },
+          ],
+          chart: { type: "bar", height: 300 },
+          xaxis: { categories: ["In Stock", "Low Stock", "Out of Stock"] },
+          title: { text: "Stock Levels" },
         },
       );
-      if (stockResponse.ok) {
-        const stockData = await stockResponse.json();
-
-        if (stockChart) {
-          stockChart.destroy();
-        }
-        stockChart = new ApexCharts(
-          document.querySelector("#stock-levels-chart"),
-          {
-            series: [
-              {
-                name: "Products",
-                data: [
-                  stockData["In Stock"],
-                  stockData["Low Stock"],
-                  stockData["Out of Stock"],
-                ],
-              },
-            ],
-            chart: { type: "bar", height: 300 },
-            xaxis: { categories: ["In Stock", "Low Stock", "Out of Stock"] },
-            title: { text: "Stock Levels" },
-          },
-        );
-        stockChart.render();
-      }
+      stockChart.render();
     } catch (error) {
       console.error("Error updating charts:", error);
     }
@@ -671,41 +648,14 @@ function displayValidationErrors(errors) {
 // Filter functions
 // ===============================
 async function applyFilters() {
+  // Update current filters from form inputs
   currentFilters.category = document.getElementById("filter-category").value;
   currentFilters.minPrice = document.getElementById("filter-min-price").value;
   currentFilters.maxPrice = document.getElementById("filter-max-price").value;
   currentFilters.status = document.getElementById("filter-status").value;
 
-  // Build URL with filters
-  let url = API_BASE + "/products";
-  const params = [];
-  if (currentFilters.category)
-    params.push(`category=${encodeURIComponent(currentFilters.category)}`);
-  if (currentFilters.minPrice)
-    params.push(`minPrice=${currentFilters.minPrice}`);
-  if (currentFilters.maxPrice)
-    params.push(`maxPrice=${currentFilters.maxPrice}`);
-  if (currentFilters.status)
-    params.push(`status=${encodeURIComponent(currentFilters.status)}`);
-  if (params.length > 0) url += "?" + params.join("&");
-
-  try {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-    });
-    if (response.ok) {
-      const data = await response.json();
-      table.clear();
-      table.rows.add(data);
-      table.draw();
-    } else {
-      console.error("Failed to fetch filtered data");
-    }
-  } catch (error) {
-    console.error("Error fetching filtered data:", error);
-  }
+  // Reload DataTable with new filters
+  table.ajax.reload();
 }
 
 async function clearFilters() {
@@ -751,7 +701,7 @@ async function editProduct(id) {
   try {
     const response = await fetch(`${API_BASE}/products/${id}`, {
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
     });
     if (!response.ok) throw new Error("Failed to load product");
@@ -806,7 +756,7 @@ async function deleteProduct(id) {
     const response = await fetch(`${API_BASE}/products/${id}`, {
       method: "DELETE",
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
     });
     if (!response.ok) {
@@ -827,5 +777,34 @@ async function deleteProduct(id) {
   } catch (error) {
     console.error("Error deleting product:", error);
     alert(error.message);
+  }
+}
+
+// ==============================
+// User Profile Functions
+// ==============================
+function showProfile() {
+  showToast("Profile view coming soon!", "info");
+}
+
+function editProfilePicture() {
+  showToast("Profile picture editor coming soon!", "info");
+}
+
+function changePassword() {
+  showToast("Password change feature coming soon!", "info");
+}
+
+function accountSettings() {
+  showToast("Account settings coming soon!", "info");
+}
+
+function helpSupport() {
+  showToast("Help & Support center coming soon!", "info");
+}
+
+function logout() {
+  if (confirm("Are you sure you want to logout?")) {
+    apiClient.logout();
   }
 }

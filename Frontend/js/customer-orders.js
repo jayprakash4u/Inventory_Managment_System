@@ -3,9 +3,10 @@
 // Base URL of your backend API
 const API_BASE = "https://localhost:44383/api";
 
-const token = localStorage.getItem("token");
-
-if (!token) {
+/* ===============================
+    AUTHENTICATION CHECK
+ =============================== */
+if (!apiClient.isAuthenticated()) {
   window.location.href = "login.html";
 }
 
@@ -13,7 +14,7 @@ if (!token) {
 function getSeverityForAction(action) {
   switch (action.toUpperCase()) {
     case "DELETE":
-      return "high"; // Deletions are high severity
+      return "high";
     case "CREATE":
     case "UPDATE":
     case "VIEW":
@@ -40,28 +41,11 @@ async function logAuditEvent(action, module, entity, details, severity = null) {
 
     console.log("🔍 AUDIT LOG: Attempting to log audit event:", auditData);
 
-    const response = await fetch(`${API_BASE}/audit`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-      body: JSON.stringify(auditData),
-    });
-
-    console.log(
-      "🔍 AUDIT LOG: API Response:",
-      response.status,
-      response.statusText,
-    );
-
-    if (response.ok) {
+    try {
+      await apiClient.post("/audit", auditData);
       console.log("✅ AUDIT LOG: Successfully logged audit event");
-    } else {
-      console.error(
-        "❌ AUDIT LOG: Failed to log audit event - Status:",
-        response.status,
-      );
+    } catch (error) {
+      console.error("❌ AUDIT LOG: Failed to log audit event:", error.message);
     }
   } catch (error) {
     console.error("❌ AUDIT LOG: Exception while logging audit event:", error);
@@ -93,18 +77,48 @@ const salesRevenueData = {
 async function initializeOrdersTable() {
   ordersTable = $("#customer-orders-table").DataTable({
     serverSide: true,
-    ajax: {
-      url: `${API_BASE}/customer-orders`,
-      type: "GET",
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-      data: function (d) {
-        // Add current filters to the request
-        if (currentFilters.status) d.status = currentFilters.status;
-        if (currentFilters.customer) d.customer = currentFilters.customer;
-        if (currentFilters.dateRange) d.dateRange = currentFilters.dateRange;
-      },
+    ajax: async function (data, callback, settings) {
+      try {
+        // Build query parameters
+        const params = new URLSearchParams({
+          draw: data.draw,
+          start: data.start,
+          length: data.length,
+          ...currentFilters,
+        });
+
+        // Add sorting if present
+        if (data.order && data.order.length > 0) {
+          const order = data.order[0];
+          params.append("orderColumn", data.columns[order.column].data);
+          params.append("orderDir", order.dir);
+        }
+
+        // Add search if present
+        if (data.search && data.search.value) {
+          params.append("search", data.search.value);
+        }
+
+        const url = `/customer-orders?${params.toString()}`;
+        const response = await apiClient.get(url);
+        const result = await response.json();
+
+        callback({
+          draw: result.draw,
+          recordsTotal: result.recordsTotal,
+          recordsFiltered: result.recordsFiltered,
+          data: result.data,
+        });
+      } catch (error) {
+        console.error("DataTable ajax error:", error);
+        showToast("Failed to load customer orders: " + error.message, "error");
+        callback({
+          draw: data.draw,
+          recordsTotal: 0,
+          recordsFiltered: 0,
+          data: [],
+        });
+      }
     },
     columns: [
       {
@@ -275,37 +289,21 @@ function renderSalesRevenueChart() {
 async function loadChartsData() {
   try {
     // Load orders summary
-    const summaryResponse = await fetch(`${API_BASE}/customer-orders/summary`, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-    });
-
-    if (summaryResponse.ok) {
-      const summary = await summaryResponse.json();
-      updateSummaryCards(summary);
-    }
+    const summaryResponse = await apiClient.get("/customer-orders/summary");
+    const summary = await summaryResponse.json();
+    updateSummaryCards(summary);
 
     // Load orders by status for chart
-    const statusResponse = await fetch(
-      `${API_BASE}/customer-orders/chart/status`,
-      {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      },
-    );
-
-    if (statusResponse.ok) {
-      const statusData = await statusResponse.json();
-      renderSalesOrdersStatusChart(statusData);
-    }
+    const statusResponse = await apiClient.get("/customer-orders/chart/status");
+    const statusData = await statusResponse.json();
+    renderSalesOrdersStatusChart(statusData);
 
     // For now, keep sample data for sales revenue chart
     // In a real implementation, you'd create an API endpoint for this
     renderSalesRevenueChart();
   } catch (error) {
     console.error("Error loading charts data:", error);
+    showToast("Failed to load chart data: " + error.message, "error");
   }
 }
 
@@ -320,39 +318,29 @@ function updateSummaryCards(summary) {
 // Edit order function
 async function editOrder(orderId) {
   try {
-    const response = await fetch(`${API_BASE}/customer-orders/${orderId}`, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-    });
+    const response = await apiClient.get(`/customer-orders/${orderId}`);
+    const order = await response.json();
 
-    if (response.ok) {
-      const order = await response.json();
+    // Populate modal with order data
+    document.getElementById("order-id").value = order.orderId;
+    document.getElementById("customer-name").value = order.customerName;
+    document.getElementById("order-date").value = order.orderDate.split("T")[0];
+    document.getElementById("order-items").value = order.items;
+    document.getElementById("order-value").value = order.totalValue;
+    document.getElementById("order-status").value = order.status;
 
-      // Populate modal with order data
-      document.getElementById("order-id").value = order.orderId;
-      document.getElementById("customer-name").value = order.customerName;
-      document.getElementById("order-date").value =
-        order.orderDate.split("T")[0];
-      document.getElementById("order-items").value = order.items;
-      document.getElementById("order-value").value = order.totalValue;
-      document.getElementById("order-status").value = order.status;
+    // Set edit mode
+    document.getElementById("add-order-modal").dataset.editId = orderId;
+    document.getElementById("order-modal-title").textContent =
+      "Edit Customer Order";
+    document.getElementById("submit-order-btn").textContent = "Update Order";
 
-      // Set edit mode
-      document.getElementById("add-order-modal").dataset.editId = orderId;
-      document.getElementById("order-modal-title").textContent =
-        "Edit Customer Order";
-      document.getElementById("submit-order-btn").textContent = "Update Order";
-
-      // Show modal
-      document.getElementById("add-order-modal").classList.add("show");
-      clearOrderFormErrors();
-    } else {
-      showToast("Failed to load order details", "error");
-    }
+    // Show modal
+    document.getElementById("add-order-modal").classList.add("show");
+    clearOrderFormErrors();
   } catch (error) {
     console.error("Error loading order:", error);
-    showToast("An error occurred while loading the order", "error");
+    showToast("Failed to load order details: " + error.message, "error");
   }
 }
 
@@ -360,24 +348,15 @@ async function editOrder(orderId) {
 async function deleteOrder(orderId) {
   if (confirm("Are you sure you want to delete this order?")) {
     try {
-      const response = await fetch(`${API_BASE}/customer-orders/${orderId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
+      await apiClient.delete(`/customer-orders/${orderId}`);
 
-      if (response.ok) {
-        // Refresh table and charts
-        ordersTable.ajax.reload();
-        loadChartsData();
-        showToast("Customer order deleted successfully!", "success");
-      } else {
-        showToast("Failed to delete order", "error");
-      }
+      // Refresh table and charts
+      ordersTable.ajax.reload();
+      loadChartsData();
+      showToast("Customer order deleted successfully!", "success");
     } catch (error) {
       console.error("Error deleting order:", error);
-      showToast("An error occurred while deleting the order", "error");
+      showToast("Failed to delete order: " + error.message, "error");
     }
   }
 }
@@ -385,50 +364,43 @@ async function deleteOrder(orderId) {
 // View order function
 async function viewOrder(orderId) {
   try {
-    const response = await fetch(`${API_BASE}/customer-orders/${orderId}`, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-    });
+    const response = await apiClient.get(`/customer-orders/${orderId}`);
+    const order = await response.json();
 
-    if (response.ok) {
-      const order = await response.json();
+    // Populate modal with order data
+    document.getElementById("view-order-id").textContent = order.id;
+    document.getElementById("view-order-orderid").textContent = order.orderId;
+    document.getElementById("view-order-customer").textContent =
+      order.customerName;
+    document.getElementById("view-order-date").textContent = new Date(
+      order.orderDate,
+    ).toLocaleDateString();
+    document.getElementById("view-order-items").textContent = order.items;
+    document.getElementById("view-order-value").textContent =
+      `$${order.totalValue.toFixed(2)}`;
 
-      // Populate modal with order data
-      document.getElementById("view-order-id").textContent = order.id;
-      document.getElementById("view-order-orderid").textContent = order.orderId;
-      document.getElementById("view-order-customer").textContent =
-        order.customerName;
-      document.getElementById("view-order-date").textContent = new Date(
-        order.orderDate,
-      ).toLocaleDateString();
-      document.getElementById("view-order-items").textContent = order.items;
-      document.getElementById("view-order-value").textContent =
-        `$${order.totalValue.toFixed(2)}`;
+    // Status badge
+    const statusClasses = {
+      pending: "status-badge status-pending",
+      approved: "status-badge status-approved",
+      shipped: "status-badge status-shipped",
+      delivered: "status-badge status-delivered",
+    };
+    document.getElementById("view-order-status").innerHTML =
+      `<span class="${statusClasses[order.status] || "status-badge"}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>`;
 
-      // Status badge
-      const statusClasses = {
-        pending: "status-badge status-pending",
-        approved: "status-badge status-approved",
-        shipped: "status-badge status-shipped",
-        delivered: "status-badge status-delivered",
-      };
-      document.getElementById("view-order-status").innerHTML =
-        `<span class="${statusClasses[order.status] || "status-badge"}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>`;
+    document.getElementById("view-order-created").textContent = order.createdAt
+      ? new Date(order.createdAt).toLocaleString()
+      : "N/A";
+    document.getElementById("view-order-updated").textContent = order.updatedAt
+      ? new Date(order.updatedAt).toLocaleString()
+      : "N/A";
 
-      document.getElementById("view-order-created").textContent =
-        order.createdAt ? new Date(order.createdAt).toLocaleString() : "N/A";
-      document.getElementById("view-order-updated").textContent =
-        order.updatedAt ? new Date(order.updatedAt).toLocaleString() : "N/A";
-
-      // Show modal
-      document.getElementById("view-order-modal").classList.add("show");
-    } else {
-      showToast("Failed to load order details", "error");
-    }
+    // Show modal
+    document.getElementById("view-order-modal").classList.add("show");
   } catch (error) {
     console.error("Error loading order:", error);
-    showToast("An error occurred while loading the order", "error");
+    showToast("Failed to load order details: " + error.message, "error");
   }
 }
 

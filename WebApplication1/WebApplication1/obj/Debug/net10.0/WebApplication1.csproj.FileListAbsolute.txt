@@ -182,13 +182,19 @@ C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\Web
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\WebApplication1.runtimeconfig.json
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\WebApplication1.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\WebApplication1.pdb
+C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\AspNetCoreRateLimit.dll
+C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\AutoMapper.dll
+C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Azure.Core.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Azure.Identity.dll
+C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\BCrypt.Net-Next.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\FluentValidation.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\FluentValidation.AspNetCore.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\FluentValidation.DependencyInjectionExtensions.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Humanizer.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.AspNetCore.Mvc.Versioning.dll
+C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.AspNetCore.OpenApi.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.Bcl.AsyncInterfaces.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.Bcl.Cryptography.dll
@@ -209,6 +215,7 @@ C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\Web
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.Relational.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.SqlServer.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.Extensions.DependencyModel.dll
+C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.Identity.Client.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.Identity.Client.Extensions.Msal.dll
 C:\Users\Jay Prakash Yadav\OneDrive\Desktop\Productfronttend\WebApplication1\WebApplication1\bin\Debug\net10.0\Microsoft.IdentityModel.Abstractions.dll

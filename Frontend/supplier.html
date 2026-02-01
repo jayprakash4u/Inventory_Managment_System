@@ -16,47 +16,12 @@
     />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="Css/style.css" />
+    <link rel="stylesheet" href="Css/user-profile.css" />
+    <link rel="stylesheet" href="Css/table.css" />
     <link
       rel="stylesheet"
       href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
     />
-    <style>
-      .order-details {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px 20px;
-        max-height: 400px;
-        overflow-y: auto;
-        padding: 10px 0;
-      }
-
-      .detail-row {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .detail-row label {
-        font-weight: 600;
-        color: #333;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .detail-row span {
-        color: #666;
-        font-size: 14px;
-        word-break: break-word;
-      }
-
-      @media (max-width: 768px) {
-        .order-details {
-          grid-template-columns: 1fr;
-          gap: 10px;
-        }
-      }
-    </style>
   </head>
   <body>
     <div class="grid-container">
@@ -84,17 +49,48 @@
             aria-haspopup="true"
             aria-expanded="false"
           >
-            <span class="material-icons-outlined">account_circle</span>
-            <span id="userName">User</span>
-            <span class="material-icons-outlined dropdown-arrow"
-              >expand_more</span
-            >
+            <img src="" alt="Profile" class="profile-pic" id="profilePic" />
             <div class="user-menu" role="menu">
-              <a href="#" role="menuitem" onclick="showProfile()">Profile</a>
-              <a href="#" role="menuitem" onclick="changePassword()"
-                >Change Password</a
-              >
-              <a href="#" role="menuitem" onclick="logout()">Logout</a>
+              <div class="user-info">
+                <img
+                  src=""
+                  alt="Profile"
+                  class="menu-profile-pic"
+                  id="menuProfilePic"
+                />
+                <div class="user-details">
+                  <div class="user-display-name" id="menuUserName">User</div>
+                  <div class="user-email" id="menuUserEmail">
+                    user@example.com
+                  </div>
+                </div>
+              </div>
+              <div class="menu-divider"></div>
+              <a href="#" role="menuitem" onclick="showProfile()">
+                <span class="material-icons-outlined">person</span>
+                View Profile
+              </a>
+              <a href="#" role="menuitem" onclick="editProfilePicture()">
+                <span class="material-icons-outlined">photo_camera</span>
+                Change Picture
+              </a>
+              <a href="#" role="menuitem" onclick="changePassword()">
+                <span class="material-icons-outlined">lock</span>
+                Change Password
+              </a>
+              <a href="#" role="menuitem" onclick="accountSettings()">
+                <span class="material-icons-outlined">settings</span>
+                Account Settings
+              </a>
+              <a href="#" role="menuitem" onclick="helpSupport()">
+                <span class="material-icons-outlined">help</span>
+                Help & Support
+              </a>
+              <div class="menu-divider"></div>
+              <a href="#" role="menuitem" onclick="logout()">
+                <span class="material-icons-outlined">logout</span>
+                Logout
+              </a>
             </div>
           </div>
         </div>
@@ -466,6 +462,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/5.3.5/apexcharts.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/user-profile-component.js"></script>
     <script src="js/supplier.js"></script>
   </body>
 </html>

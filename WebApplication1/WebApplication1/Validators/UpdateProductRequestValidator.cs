@@ -1,17 +1,30 @@
 using FluentValidation;
-using WebApplication1.DTOs;
 
-namespace WebApplication1.Validators
+namespace WebApplication1.DTOs
 {
     public class UpdateProductRequestValidator : AbstractValidator<UpdateProductRequest>
     {
         public UpdateProductRequestValidator()
         {
-            RuleFor(x => x.Name).MaximumLength(100).When(x => x.Name != null);
-            RuleFor(x => x.Sku).MaximumLength(50).When(x => x.Sku != null);
-            RuleFor(x => x.Quantity).GreaterThanOrEqualTo(0).When(x => x.Quantity.HasValue);
-            RuleFor(x => x.Price).GreaterThanOrEqualTo(0).When(x => x.Price.HasValue);
-            RuleFor(x => x.Description).MaximumLength(500).When(x => x.Description != null);
+            RuleFor(x => x.Name)
+                .NotEmpty().WithMessage("Product name is required.")
+                .Length(2, 100).WithMessage("Product name must be between 2 and 100 characters.");
+
+            RuleFor(x => x.Sku)
+                .NotEmpty().WithMessage("SKU is required.")
+                .Length(3, 50).WithMessage("SKU must be between 3 and 50 characters.");
+
+            RuleFor(x => x.CategoryName)
+                .MaximumLength(50).WithMessage("Category name must not exceed 50 characters.");
+
+            RuleFor(x => x.Quantity)
+                .GreaterThanOrEqualTo(0).WithMessage("Quantity must be non-negative.");
+
+            RuleFor(x => x.Price)
+                .GreaterThanOrEqualTo(0).WithMessage("Price must be non-negative.");
+
+            RuleFor(x => x.Description)
+                .MaximumLength(500).WithMessage("Description must not exceed 500 characters.");
         }
     }
 }

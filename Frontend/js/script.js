@@ -1,17 +1,9 @@
-const apiUrl = "https://localhost:44383/api/products";
-const token = localStorage.getItem("token");
-
-if (!token) {
+/* ===============================
+    AUTHENTICATION CHECK
+ =============================== */
+if (!apiClient.isAuthenticated()) {
   window.location.href = "login.html";
 }
-
-/* ===============================
-   COMMON FETCH HEADERS
-=============================== */
-const authHeaders = {
-  "Content-Type": "application/json",
-  Authorization: "Bearer " + token,
-};
 
 /* ===============================
    DOCUMENT READY
@@ -32,19 +24,11 @@ $(document).ready(function () {
 });
 
 /* ===============================
-   LOAD PRODUCTS
-=============================== */
+    LOAD PRODUCTS
+ =============================== */
 async function loadProducts() {
   try {
-    const response = await fetch(apiUrl, {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
+    const response = await apiClient.get("/products");
 
     const products = await response.json();
     const tbody = $("#tbody");
@@ -92,6 +76,7 @@ async function loadProducts() {
       tbody.append(tr);
     });
   } catch (error) {
+    console.error("Load products error:", error);
     alert("Load failed: " + error.message);
   }
 }
@@ -114,20 +99,13 @@ async function addProduct() {
   }
 
   try {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({ name, price }),
-    });
-
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
+    await apiClient.post("/products", { name, price });
 
     $("#add-name").val("");
     $("#add-price").val("");
     loadProducts();
   } catch (error) {
+    console.error("Add product error:", error);
     alert("Add failed: " + error.message);
   }
 }
@@ -150,18 +128,11 @@ async function updateProduct(id) {
   }
 
   try {
-    const response = await fetch(`${apiUrl}/${id}`, {
-      method: "PUT",
-      headers: authHeaders,
-      body: JSON.stringify({ id, name, price }),
-    });
-
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
+    await apiClient.put(`/products/${id}`, { id, name, price });
 
     loadProducts();
   } catch (error) {
+    console.error("Update product error:", error);
     alert("Update failed: " + error.message);
   }
 }
@@ -173,19 +144,11 @@ async function deleteProduct(id) {
   if (!confirm("Delete this product?")) return;
 
   try {
-    const response = await fetch(`${apiUrl}/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
+    await apiClient.delete(`/products/${id}`);
 
     loadProducts();
   } catch (error) {
+    console.error("Delete product error:", error);
     alert("Delete failed: " + error.message);
   }
 }

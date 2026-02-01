@@ -1,87 +1,165 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
   <head>
-    <title>Login</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Inventory System</title>
+    <!-- Montserrat font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Material Icon -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="Css/style.css" />
     <style>
       body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Montserrat", sans-serif;
         margin: 0;
         padding: 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #246dec 0%, #4a90e2 100%);
         min-height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
       }
-      #authSection {
+      .auth-container {
         background: white;
         padding: 40px;
-        border-radius: 10px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         width: 100%;
-        max-width: 400px;
+        max-width: 420px;
         text-align: center;
       }
-      h2 {
+      .auth-header {
         margin-bottom: 30px;
+      }
+      .auth-header .icon {
+        font-size: 48px;
+        color: #246dec;
+        margin-bottom: 10px;
+      }
+      .auth-header h2 {
+        margin: 0;
         color: #333;
-        font-weight: 300;
+        font-weight: 600;
+        font-size: 24px;
       }
-      input {
-        width: 100%;
-        padding: 15px;
-        margin: 10px 0;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        font-size: 16px;
-        transition: border-color 0.3s;
+      .auth-header p {
+        margin: 5px 0 0 0;
+        color: #666;
+        font-size: 14px;
       }
-      input:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
-      }
-      button {
-        width: 100%;
-        padding: 15px;
+      .auth-links {
         margin-top: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: transform 0.2s;
+        font-size: 14px;
       }
-      button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-      }
-      a {
-        display: inline-block;
-        margin-top: 20px;
-        color: #667eea;
+      .auth-links a {
+        color: #246dec;
         text-decoration: none;
+        font-weight: 500;
       }
-      a:hover {
+      .auth-links a:hover {
         text-decoration: underline;
+      }
+      .password-field {
+        position: relative;
+      }
+      .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        padding: 4px;
+        font-size: 18px;
+        transition: color 0.2s;
+      }
+      .password-toggle:hover {
+        color: #246dec;
       }
     </style>
   </head>
   <body>
-    <div id="authSection">
-      <h2>Login</h2>
-      <input id="loginEmail" placeholder="Email" />
-      <input id="loginPassword" placeholder="Password" type="password" />
-      <button id="loginBtn">Login</button>
-      <p>Don't have an account? <a href="register.html">Register</a></p>
-    </div>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script>
-      const authUrl = "https://localhost:44383/api/auth";
+    <div class="auth-container">
+      <!-- Header -->
+      <div class="auth-header">
+        <div class="icon">🔐</div>
+        <h2>Welcome Back</h2>
+        <p>Sign in to your account</p>
+      </div>
 
+      <!-- Form -->
+      <form id="login-form" class="form">
+        <label for="loginEmail">
+          Email Address
+          <input
+            type="email"
+            id="loginEmail"
+            name="email"
+            placeholder="Enter your email"
+            required
+          />
+          <span class="error-message" id="email-error"></span>
+        </label>
+
+        <label for="loginPassword">
+          Password
+          <div class="password-field">
+            <input
+              type="password"
+              id="loginPassword"
+              name="password"
+              placeholder="Enter your password"
+              required
+            />
+            <button type="button" class="password-toggle" id="togglePassword">
+              <span class="material-icons-outlined">visibility_off</span>
+            </button>
+          </div>
+          <span class="error-message" id="password-error"></span>
+        </label>
+
+        <a href="#" class="submit-btn" id="loginBtn">Sign In</a>
+      </form>
+
+      <!-- Links -->
+      <div class="auth-links">
+        <p>Don't have an account? <a href="register.html">Create Account</a></p>
+      </div>
+    </div>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="js/api-client.js"></script>
+    <script>
       $(document).ready(function () {
         $("#loginBtn").click(login);
+        $("#login-form").on("submit", function (e) {
+          e.preventDefault();
+          login();
+        });
+
+        // Password visibility toggle
+        $("#togglePassword").click(function () {
+          const passwordInput = $("#loginPassword");
+          const icon = $(this).find("span");
+
+          if (passwordInput.attr("type") === "password") {
+            passwordInput.attr("type", "text");
+            icon.text("visibility");
+          } else {
+            passwordInput.attr("type", "password");
+            icon.text("visibility_off");
+          }
+        });
       });
 
       function validateEmail(email) {
@@ -89,43 +167,45 @@
         return emailRegex.test(email);
       }
 
+      function showError(elementId, message) {
+        $("#" + elementId).text(message);
+      }
+
+      function clearErrors() {
+        $(".error-message").text("");
+      }
+
       async function login() {
+        clearErrors();
+
         const email = $("#loginEmail").val().trim();
         const password = $("#loginPassword").val();
 
         // Validation
+        let isValid = true;
         if (!email) {
-          alert("Email is required.");
-          return;
-        }
-        if (!validateEmail(email)) {
-          alert("Please enter a valid email address.");
-          return;
+          showError("email-error", "Email is required.");
+          isValid = false;
+        } else if (!validateEmail(email)) {
+          showError("email-error", "Please enter a valid email address.");
+          isValid = false;
         }
         if (!password) {
-          alert("Password is required.");
-          return;
+          showError("password-error", "Password is required.");
+          isValid = false;
         }
 
-        try {
-          const response = await fetch(`${authUrl}/login`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, password }),
-          });
+        if (!isValid) return;
 
-          if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem("token", data.token);
-            window.location.href = "index.html";
-          } else {
-            const errorText = await response.text();
-            alert("Login failed: " + errorText);
-          }
+        try {
+          $("#loginBtn").prop("disabled", true).text("Signing In...");
+          const data = await apiClient.login(email, password);
+          localStorage.setItem("username", email); // Store username for audit logging
+          window.location.href = "Dashboard.html";
         } catch (error) {
-          alert("Login failed: " + error.message);
+          showError("password-error", "Login failed: " + error.message);
+        } finally {
+          $("#loginBtn").prop("disabled", false).text("Sign In");
         }
       }
     </script>
