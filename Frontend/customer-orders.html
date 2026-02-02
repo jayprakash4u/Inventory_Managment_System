@@ -66,28 +66,77 @@
                 </div>
               </div>
               <div class="menu-divider"></div>
-              <a href="#" role="menuitem" onclick="showProfile()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  showProfile();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">person</span>
                 View Profile
               </a>
-              <a href="#" role="menuitem" onclick="editProfilePicture()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  editProfilePicture();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">photo_camera</span>
                 Change Picture
               </a>
-              <a href="#" role="menuitem" onclick="changePassword()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  changePassword();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">lock</span>
                 Change Password
               </a>
-              <a href="#" role="menuitem" onclick="accountSettings()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  accountSettings();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">settings</span>
                 Account Settings
               </a>
-              <a href="#" role="menuitem" onclick="helpSupport()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  helpSupport();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">help</span>
                 Help & Support
               </a>
               <div class="menu-divider"></div>
-              <a href="#" role="menuitem" onclick="logout()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  logout();
+                  return false;
+                "
+              >
+                > href="#" role="menuitem" onclick=" logout(); return false; " >
                 <span class="material-icons-outlined">logout</span>
                 Logout
               </a>
@@ -339,7 +388,7 @@
                 id="custom-customer"
                 name="customCustomer"
                 placeholder="Enter custom customer name"
-                style="display: none; margin-top: 5px"
+                class="input-hidden mt-5"
               />
               <span class="error-message" id="customer-name-error"></span>
             </label>
@@ -387,9 +436,9 @@
               <span class="error-message" id="order-status-error"></span>
             </label>
 
-            <a href="#" class="submit-btn" id="submit-order-btn"
-              >Create Order</a
-            >
+            <button type="submit" class="submit-btn" id="submit-order-btn">
+              Create Order
+            </button>
           </form>
         </div>
       </div>
@@ -403,7 +452,9 @@
 
           <!-- Header -->
           <div class="modal-header">
-            <div class="icon">👁️</div>
+            <div class="icon">
+              <span class="material-icons-outlined">visibility</span>
+            </div>
             <div>
               <h2>Order Details</h2>
               <p>View customer order information</p>
@@ -463,6 +514,7 @@
     <script src="js/api-client.js"></script>
     <script src="js/profile-management.js"></script>
     <script src="js/user-profile-component.js"></script>
+    <script src="js/global-profile-init.js"></script>
 
     <script>
       // Load profile modals after scripts are ready
@@ -503,5 +555,7 @@
     </script>
 
     <script src="js/customer-orders.js"></script>
+    <script src="js/form-validator.js"></script>
+    <script src="js/toast-notification.js"></script>
   </body>
 </html>

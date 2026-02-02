@@ -51,7 +51,7 @@ namespace WebApplication1.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult>Login(LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             _logger.LogInformation("Login attemp for email:{Email}", request.Email);
 
@@ -59,7 +59,7 @@ namespace WebApplication1.Controllers
             if (user == null)
             {
                 _logger.LogWarning("Login failed for email:{Email}", request.Email);
-                return Unauthorized("Invalid credentials");
+                return Unauthorized(new { error = "Invalid credentials", message = "The email or password you entered is incorrect." });
             }
 
 

@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="Css/user-profile.css" />
     <link rel="stylesheet" href="Css/table.css" />
     <link rel="stylesheet" href="Css/inventory.css" />
+    <link rel="stylesheet" href="Css/insights.css" />
     <link
       rel="stylesheet"
       href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
@@ -67,28 +68,77 @@
                 </div>
               </div>
               <div class="menu-divider"></div>
-              <a href="#" role="menuitem" onclick="showProfile()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  showProfile();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">person</span>
                 View Profile
               </a>
-              <a href="#" role="menuitem" onclick="editProfilePicture()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  editProfilePicture();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">photo_camera</span>
                 Change Picture
               </a>
-              <a href="#" role="menuitem" onclick="changePassword()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  changePassword();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">lock</span>
                 Change Password
               </a>
-              <a href="#" role="menuitem" onclick="accountSettings()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  accountSettings();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">settings</span>
                 Account Settings
               </a>
-              <a href="#" role="menuitem" onclick="helpSupport()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  helpSupport();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">help</span>
                 Help & Support
               </a>
               <div class="menu-divider"></div>
-              <a href="#" role="menuitem" onclick="logout()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  logout();
+                  return false;
+                "
+              >
+                >
                 <span class="material-icons-outlined">logout</span>
                 Logout
               </a>
@@ -334,7 +384,7 @@
           </div>
 
           <!-- Form -->
-          <form id="add-product-form" class="form">
+          <form id="add-product-form" class="form" data-validate>
             <label for="product-name">
               Product Name
               <input
@@ -342,6 +392,7 @@
                 id="product-name"
                 name="productName"
                 placeholder="Enter product name"
+                data-validation="required,minLength:3"
                 required
               />
               <span class="error-message" id="product-name-error"></span>
@@ -354,6 +405,7 @@
                 id="product-sku"
                 name="sku"
                 placeholder="Enter SKU"
+                data-validation="required,minLength:2"
                 required
               />
               <span class="error-message" id="product-sku-error"></span>
@@ -361,7 +413,12 @@
 
             <label for="product-category">
               Category
-              <select id="product-category" name="category" required>
+              <select
+                id="product-category"
+                name="category"
+                data-validation="required"
+                required
+              >
                 <option value="">Select Category</option>
                 <option value="Electronics">Electronics</option>
                 <option value="Clothing">Clothing</option>
@@ -375,7 +432,7 @@
                 id="custom-category"
                 name="customCategory"
                 placeholder="Enter custom category"
-                style="display: none; margin-top: 5px"
+                class="input-hidden mt-5"
               />
               <span class="error-message" id="product-category-error"></span>
             </label>
@@ -389,6 +446,7 @@
                   name="quantity"
                   placeholder="0"
                   min="0"
+                  data-validation="required"
                   required
                 />
                 <span class="error-message" id="product-quantity-error"></span>
@@ -403,6 +461,7 @@
                   placeholder="0.00"
                   step="0.01"
                   min="0"
+                  data-validation="required"
                   required
                 />
                 <span class="error-message" id="product-price-error"></span>
@@ -434,7 +493,9 @@
 
           <!-- Header -->
           <div class="modal-header">
-            <div class="icon">👁️</div>
+            <div class="icon">
+              <span class="material-icons-outlined">visibility</span>
+            </div>
             <div>
               <h2>Product Details</h2>
               <p>View product information</p>
@@ -494,13 +555,14 @@
     <div id="profileModalsContainer"></div>
 
     <!-- Scripts -->
-    <!-- ApexCharts js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/5.3.5/apexcharts.min.js"></script>
+    <!-- jQuery must be loaded first -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/5.3.5/apexcharts.min.js"></script>
     <script src="js/api-client.js"></script>
     <script src="js/profile-management.js"></script>
     <script src="js/user-profile-component.js"></script>
+    <script src="js/global-profile-init.js"></script>
 
     <script>
       // Load profile modals after scripts are ready
@@ -541,5 +603,7 @@
     </script>
 
     <script src="js/inventory.js"></script>
+    <script src="js/form-validator.js"></script>
+    <script src="js/toast-notification.js"></script>
   </body>
 </html>

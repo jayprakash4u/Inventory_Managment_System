@@ -8,7 +8,8 @@ namespace WebApplication1.Data
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
-
+            // Set a longer command timeout for database operations (60 seconds)
+            Database.SetCommandTimeout(60000);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -21,6 +22,11 @@ namespace WebApplication1.Data
                 .WithMany() // User can have many refresh tokens
                 .HasForeignKey(rt => rt.UserEmail)
                 .HasPrincipalKey(u => u.Email);
+
+            // Add index on User.Email for faster lookups during login
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
         }
 
         public DbSet<Product> Products => Set<Product>();

@@ -1,17 +1,35 @@
 /**
- * Centralized API Client for Product Management System
- * Handles authentication, token refresh, error handling, and API versioning
+ * Centralized API Client - Handles authentication, token refresh, error handling, and caching
  */
-
 class ApiClient {
   constructor() {
-    this.baseUrl = "https://localhost:44383/api"; // Base API URL
-    this.authUrl = "https://localhost:44383/api/auth"; // Auth endpoints
+    this.baseUrl = "https://localhost:44383/api";
+    this.authUrl = "https://localhost:44383/api/auth";
+    this.cache = new Map();
+    this.cacheTimeout = 5 * 60 * 1000;
   }
 
-  /**
-   * Get authorization headers with current access token
-   */
+  getCached(key) {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      return cached.data;
+    }
+    if (cached) this.cache.delete(key);
+    return null;
+  }
+
+  setCache(key, data) {
+    this.cache.set(key, { data, timestamp: Date.now() });
+    if (this.cache.size > 50) {
+      const firstKey = this.cache.keys().next().value;
+      this.cache.delete(firstKey);
+    }
+  }
+
+  clearCache() {
+    this.cache.clear();
+  }
+
   getAuthHeaders() {
     const token = localStorage.getItem("accessToken");
     return {
@@ -20,9 +38,6 @@ class ApiClient {
     };
   }
 
-  /**
-   * Check if JWT token is expired
-   */
   isTokenExpired(token) {
     if (!token) return true;
 
@@ -36,9 +51,6 @@ class ApiClient {
     }
   }
 
-  /**
-   * Refresh access token using refresh token
-   */
   async refreshAccessToken() {
     const refreshToken = localStorage.getItem("refreshToken");
     if (!refreshToken) {
@@ -60,7 +72,6 @@ class ApiClient {
         localStorage.setItem("refreshToken", data.refreshToken);
         return data.accessToken;
       } else {
-        // Refresh failed, redirect to login
         this.handleAuthError();
         throw new Error("Token refresh failed");
       }
@@ -71,35 +82,54 @@ class ApiClient {
     }
   }
 
-  /**
-   * Handle authentication errors by clearing tokens and redirecting to login
-   */
   handleAuthError() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("username");
-    window.location.href = "login.html";
+    this.clearCache();
+
+    if (typeof ToastNotification !== "undefined") {
+      ToastNotification.error("Your session has expired. Please log in again.");
+    }
+
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 1500);
   }
 
-  /**
-   * Parse RFC 7807 Problem Details error response
-   */
-  parseProblemDetails(response) {
+  parseErrorResponse(response, text) {
     try {
-      const problem = response;
+      if (text && (text.startsWith("{") || text.startsWith("["))) {
+        const json = JSON.parse(text);
+        return this.parseProblemDetails(json);
+      }
+      if (text && text.trim().length > 0) {
+        return text.trim();
+      }
+      return `HTTP ${response.status}: ${response.statusText}`;
+    } catch (error) {
+      return `HTTP ${response.status}: ${response.statusText}`;
+    }
+  }
 
-      // Handle validation errors
+  parseProblemDetails(problem) {
+    try {
       if (problem.errors) {
         const errorMessages = Object.values(problem.errors).flat();
         return errorMessages.join(", ");
       }
 
-      // Handle business errors
       if (problem.detail) {
         return problem.detail;
       }
 
-      // Handle generic errors
+      if (problem.message) {
+        return problem.message;
+      }
+      if (problem.error && problem.message) {
+        return problem.message;
+      }
+
       if (problem.title) {
         return problem.title;
       }
@@ -111,29 +141,22 @@ class ApiClient {
     }
   }
 
-  /**
-   * Make authenticated API request with automatic token refresh
-   */
   async makeRequest(url, options = {}) {
-    const maxRetries = 1; // Only retry once for token refresh
+    const maxRetries = 1;
     let attempt = 0;
 
     while (attempt <= maxRetries) {
       try {
-        // Check if token is expired before making request
         const token = localStorage.getItem("accessToken");
         if (token && this.isTokenExpired(token)) {
-          console.log("Access token expired, attempting refresh...");
           await this.refreshAccessToken();
         }
 
-        // Merge headers
         const headers = { ...this.getAuthHeaders(), ...options.headers };
         const requestOptions = { ...options, headers };
 
         const response = await fetch(url, requestOptions);
 
-        // Handle rate limiting
         if (response.status === 429) {
           const retryAfter = response.headers.get("Retry-After") || "60";
           throw new Error(
@@ -141,22 +164,17 @@ class ApiClient {
           );
         }
 
-        // Handle authentication errors
         if (response.status === 401) {
           if (attempt === 0) {
-            // Try refreshing token once
-            console.log("Received 401, attempting token refresh...");
             await this.refreshAccessToken();
             attempt++;
-            continue; // Retry with new token
+            continue;
           } else {
-            // Token refresh failed or already attempted
             this.handleAuthError();
             throw new Error("Authentication failed. Please log in again.");
           }
         }
 
-        // Handle other errors
         if (!response.ok) {
           let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
 
@@ -164,8 +182,6 @@ class ApiClient {
             const errorData = await response.json();
             errorMessage = this.parseProblemDetails(errorData);
           } catch (parseError) {
-            console.warn("Could not parse error response:", parseError);
-            // Try to get text error
             try {
               const textError = await response.text();
               if (textError) {
@@ -188,27 +204,42 @@ class ApiClient {
           throw error;
         }
         attempt++;
-        console.log(
-          `Request failed, attempt ${attempt}/${maxRetries + 1}:`,
-          error.message,
-        );
       }
     }
   }
 
-  /**
-   * GET request
-   */
-  async get(endpoint) {
+  async get(endpoint, useCache = true) {
     const url = endpoint.startsWith("/")
       ? `${this.baseUrl}${endpoint}`
       : `${this.baseUrl}/${endpoint}`;
-    return this.makeRequest(url);
+
+    if (useCache) {
+      const cacheKey = `GET:${url}`;
+      const cached = this.getCached(cacheKey);
+      if (cached) {
+        return {
+          ok: true,
+          json: () => Promise.resolve(cached),
+          clone: () => this,
+        };
+      }
+    }
+
+    const response = await this.makeRequest(url);
+
+    if (useCache && response.ok) {
+      try {
+        const data = await response.clone().json();
+        const cacheKey = `GET:${url}`;
+        this.setCache(cacheKey, data);
+      } catch (e) {
+        // Ignore cache errors
+      }
+    }
+
+    return response;
   }
 
-  /**
-   * POST request
-   */
   async post(endpoint, data) {
     const url = endpoint.startsWith("/")
       ? `${this.baseUrl}${endpoint}`
@@ -219,9 +250,6 @@ class ApiClient {
     });
   }
 
-  /**
-   * PUT request
-   */
   async put(endpoint, data) {
     const url = endpoint.startsWith("/")
       ? `${this.baseUrl}${endpoint}`
@@ -232,9 +260,6 @@ class ApiClient {
     });
   }
 
-  /**
-   * DELETE request
-   */
   async delete(endpoint) {
     const url = endpoint.startsWith("/")
       ? `${this.baseUrl}${endpoint}`
@@ -244,9 +269,6 @@ class ApiClient {
     });
   }
 
-  /**
-   * Authentication methods
-   */
   async login(email, password) {
     const response = await fetch(`${this.authUrl}/login`, {
       method: "POST",
@@ -262,12 +284,12 @@ class ApiClient {
       localStorage.setItem("refreshToken", data.refreshToken);
       return data;
     } else {
-      let errorMessage = "Login failed";
+      let errorMessage = "Login failed. Please check your credentials.";
       try {
-        const errorData = await response.json();
-        errorMessage = this.parseProblemDetails(errorData);
+        const text = await response.text();
+        errorMessage = this.parseErrorResponse(response, text);
       } catch (error) {
-        console.warn("Could not parse login error:", error);
+        errorMessage = `Login failed (HTTP ${response.status})`;
       }
       throw new Error(errorMessage);
     }
@@ -296,9 +318,6 @@ class ApiClient {
     }
   }
 
-  /**
-   * Get stored user data from localStorage
-   */
   getStoredUser() {
     const userStr = localStorage.getItem("user");
     if (userStr) {
@@ -310,7 +329,6 @@ class ApiClient {
       }
     }
 
-    // Fallback to username if user object doesn't exist
     const username = localStorage.getItem("username");
     const email = localStorage.getItem("email");
     if (username || email) {
@@ -323,22 +341,15 @@ class ApiClient {
     return null;
   }
 
-  /**
-   * Check if user is authenticated
-   */
   isAuthenticated() {
     const token = localStorage.getItem("accessToken");
     return token && !this.isTokenExpired(token);
   }
 
-  /**
-   * Logout user
-   */
   async logout() {
     try {
       const token = localStorage.getItem("accessToken");
 
-      // Call backend logout API to revoke tokens
       if (token) {
         await fetch(`${this.authUrl}/logout`, {
           method: "POST",
@@ -350,19 +361,15 @@ class ApiClient {
       }
     } catch (error) {
       console.error("Logout API error (non-critical):", error);
-      // Continue with local logout even if API call fails
     } finally {
-      // Always clear local tokens
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("username");
+      this.clearCache();
       window.location.href = "login.html";
     }
   }
 
-  /**
-   * Get current user profile
-   */
   async getUserProfile() {
     try {
       const response = await this.makeRequest(
@@ -379,9 +386,6 @@ class ApiClient {
     }
   }
 
-  /**
-   * Update user profile information
-   */
   async updateUserProfile(profileData) {
     try {
       const response = await this.makeRequest(
@@ -399,9 +403,6 @@ class ApiClient {
     }
   }
 
-  /**
-   * Update user profile picture
-   */
   async updateProfilePicture(pictureUrl) {
     try {
       const response = await this.makeRequest(
@@ -419,9 +420,6 @@ class ApiClient {
     }
   }
 
-  /**
-   * Change user password
-   */
   async changePassword(oldPassword, newPassword, confirmPassword) {
     try {
       const response = await this.makeRequest(
@@ -444,5 +442,4 @@ class ApiClient {
   }
 }
 
-// Create global instance
 const apiClient = new ApiClient();

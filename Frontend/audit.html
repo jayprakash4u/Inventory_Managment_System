@@ -135,28 +135,77 @@
                 </div>
               </div>
               <div class="menu-divider"></div>
-              <a href="#" role="menuitem" onclick="showProfile()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  showProfile();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">person</span>
                 View Profile
               </a>
-              <a href="#" role="menuitem" onclick="editProfilePicture()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  editProfilePicture();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">photo_camera</span>
                 Change Picture
               </a>
-              <a href="#" role="menuitem" onclick="changePassword()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  changePassword();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">lock</span>
                 Change Password
               </a>
-              <a href="#" role="menuitem" onclick="accountSettings()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  accountSettings();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">settings</span>
                 Account Settings
               </a>
-              <a href="#" role="menuitem" onclick="helpSupport()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  helpSupport();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">help</span>
                 Help & Support
               </a>
               <div class="menu-divider"></div>
-              <a href="#" role="menuitem" onclick="logout()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  logout();
+                  return false;
+                "
+              >
+                > >
                 <span class="material-icons-outlined">logout</span>
                 Logout
               </a>
@@ -385,7 +434,9 @@
           <a href="#" class="close-btn" id="close-audit-modal">×</a>
 
           <div class="modal-header">
-            <div class="icon">🔍</div>
+            <div class="icon">
+              <span class="material-icons-outlined">search</span>
+            </div>
             <div>
               <h2 id="audit-modal-title">Audit Log Details</h2>
               <p>Complete information about this audit entry</p>
@@ -449,6 +500,7 @@
     <script src="js/api-client.js"></script>
     <script src="js/profile-management.js"></script>
     <script src="js/user-profile-component.js"></script>
+    <script src="js/global-profile-init.js"></script>
 
     <script>
       // Load profile modals after scripts are ready
@@ -490,5 +542,7 @@
 
     <script src="js/script.js"></script>
     <script src="js/audit.js"></script>
+    <script src="js/form-validator.js"></script>
+    <script src="js/toast-notification.js"></script>
   </body>
 </html>

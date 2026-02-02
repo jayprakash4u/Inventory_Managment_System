@@ -186,7 +186,9 @@
   padding: 16px;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .profile-detail-item:hover {
@@ -502,4 +504,233 @@
     grid-template-columns: 1fr;
     gap: 10px;
   }
+}
+
+/* ================= INLINE STYLE REPLACEMENTS ================= */
+
+/* Flex utilities */
+.flex-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.flex-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Margin utilities */
+.mt-5 {
+  margin-top: 5px;
+}
+.mt-15 {
+  margin-top: 15px;
+}
+.mb-20 {
+  margin-bottom: 20px;
+}
+.mb-0 {
+  margin: 0;
+}
+
+/* Text utilities */
+.text-center {
+  text-align: center;
+}
+.text-primary {
+  color: #246dec;
+}
+.text-success {
+  color: #10b981;
+}
+.text-muted {
+  color: #6b7280;
+}
+.text-dark {
+  color: #1f2937;
+}
+.text-small {
+  font-size: 12px;
+}
+.text-normal {
+  font-size: 14px;
+}
+.text-large {
+  font-size: 22px;
+}
+.font-bold {
+  font-weight: 700;
+}
+.font-medium {
+  font-weight: 500;
+}
+
+/* Icon sizes */
+.icon-sm {
+  font-size: 18px;
+}
+.icon-md {
+  font-size: 20px;
+}
+.icon-lg {
+  font-size: 28px;
+}
+.icon-xl {
+  font-size: 48px;
+}
+
+/* Display utilities */
+.hidden {
+  display: none;
+}
+
+/* Animation */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Position */
+.position-relative {
+  position: relative;
+}
+
+/* Status dot colors */
+.status-active {
+  background: #10b981;
+}
+
+/* Input styling */
+.input-hidden {
+  display: none;
+}
+
+/* Image container */
+.image-container {
+  margin-bottom: 20px;
+}
+
+/* Upload requirements text */
+.upload-requirements {
+  margin: 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+/* Profile modal size variations */
+.profile-modal-sm {
+  max-width: 650px;
+}
+
+/* Form inputs */
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #246dec;
+  box-shadow: 0 0 0 3px rgba(36, 109, 236, 0.1);
+}
+
+.form-input-with-icon {
+  padding-right: 40px;
+}
+
+/* Form message */
+.form-message {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: none;
+}
+
+/* Password toggle button */
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+}
+
+/* Preview image */
+.preview-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 12px;
+  border: 3px solid #246dec;
+  display: none;
+  box-shadow: 0 4px 12px rgba(36, 109, 236, 0.2);
+}
+
+/* No preview message */
+.no-preview-message {
+  padding: 40px;
+  background: #f0f4f8;
+  border-radius: 12px;
+  border: 2px dashed #246dec;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Button full width */
+.btn-full {
+  width: 100%;
+}
+
+/* Cursor */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Vertical align */
+.vertical-middle {
+  vertical-align: middle;
+}
+
+/* Margin right */
+.mr-4 {
+  margin-right: 4px;
+}
+
+/* Display block */
+.display-block {
+  display: block;
+}
+
+/* Margin bottom variations */
+.mb-5 {
+  margin-bottom: 5px;
+}
+
+.mb-10 {
+  margin-bottom: 10px;
+}
+
+.mb-15 {
+  margin-bottom: 15px;
+}
+
+/* Margin top variations */
+.mt-6 {
+  margin-top: 6px;
 }

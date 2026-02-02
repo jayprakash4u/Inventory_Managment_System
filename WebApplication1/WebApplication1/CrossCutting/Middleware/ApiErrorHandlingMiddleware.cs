@@ -110,7 +110,7 @@ namespace WebApplication1.CrossCutting.Middleware
             await context.Response.WriteAsync(result);
         }
 
-        private ValidationProblemDetails HandleValidationException(ValidationException exception, HttpContext context)
+        private ValidationProblemDetails HandleValidationException(FluentValidation.ValidationException exception, HttpContext context)
         {
             _logger.LogWarning(exception, "Validation failed for request: {Path}", context.Request.Path);
 

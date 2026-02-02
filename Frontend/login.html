@@ -86,19 +86,63 @@
       .password-toggle:hover {
         color: #246dec;
       }
+
+      /* Error alert styles */
+      .error-alert {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        color: #dc2626;
+        font-size: 14px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: shakeIn 0.5s ease;
+      }
+      .error-alert::before {
+        content: "⚠";
+        font-size: 18px;
+      }
+
+      @keyframes shakeIn {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        10%,
+        30%,
+        50%,
+        70%,
+        90% {
+          transform: translateX(-5px);
+        }
+        20%,
+        40%,
+        60%,
+        80% {
+          transform: translateX(5px);
+        }
+      }
     </style>
   </head>
   <body>
     <div class="auth-container">
       <!-- Header -->
       <div class="auth-header">
-        <div class="icon">🔐</div>
+        <div class="icon">
+          <span class="material-icons-outlined">lock</span>
+        </div>
         <h2>Welcome Back</h2>
         <p>Sign in to your account</p>
       </div>
 
       <!-- Form -->
-      <form id="login-form" class="form">
+      <form id="login-form" class="form" data-validate>
+        <div class="error-alert input-hidden"></div>
+
         <label for="loginEmail">
           Email Address
           <input
@@ -106,6 +150,7 @@
             id="loginEmail"
             name="email"
             placeholder="Enter your email"
+            data-validation="required,email"
             required
           />
           <span class="error-message" id="email-error"></span>
@@ -119,6 +164,7 @@
               id="loginPassword"
               name="password"
               placeholder="Enter your password"
+              data-validation="required,password"
               required
             />
             <button type="button" class="password-toggle" id="togglePassword">
@@ -138,6 +184,8 @@
     </div>
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="js/form-validator.js"></script>
+    <script src="js/toast-notification.js"></script>
     <script src="js/api-client.js"></script>
     <script>
       $(document).ready(function () {
@@ -171,12 +219,23 @@
         $("#" + elementId).text(message);
       }
 
+      function showLoginError(message) {
+        const errorDiv = $("#login-error");
+        errorDiv.text(message).fadeIn();
+      }
+
+      function hideLoginError() {
+        $("#login-error").fadeOut();
+      }
+
       function clearErrors() {
         $(".error-message").text("");
+        hideLoginError();
       }
 
       async function login() {
         clearErrors();
+        console.log("Login: Starting login process...");
 
         const email = $("#loginEmail").val().trim();
         const password = $("#loginPassword").val();
@@ -195,15 +254,32 @@
           isValid = false;
         }
 
-        if (!isValid) return;
+        if (!isValid) {
+          console.log("Login: Validation failed");
+          return;
+        }
 
         try {
+          console.log("Login: Calling API...");
           $("#loginBtn").prop("disabled", true).text("Signing In...");
           const data = await apiClient.login(email, password);
-          localStorage.setItem("username", email); // Store username for audit logging
-          window.location.href = "Dashboard.html";
+          console.log("Login: API response received", data);
+          localStorage.setItem("username", email);
+          ToastNotification.success("Login successful!");
+          console.log("Login: Redirecting to Dashboard...");
+          setTimeout(() => {
+            window.location.href = "Dashboard.html";
+          }, 1000);
         } catch (error) {
-          showError("password-error", "Login failed: " + error.message);
+          console.error("Login: Error", error);
+          // Show error in the alert box
+          showLoginError(error.message);
+          // Also show toast notification
+          ToastNotification.error(error.message);
+          // Clear password field
+          $("#loginPassword").val("");
+          // Focus on password field
+          $("#loginPassword").focus();
         } finally {
           $("#loginBtn").prop("disabled", false).text("Sign In");
         }

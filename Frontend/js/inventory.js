@@ -1,93 +1,50 @@
-// ===============================
-// Inventory page JavaScript
-// ===============================
-
-// Base URL of your backend API
-// All product-related requests will use this
 const API_BASE = "https://localhost:44383/api";
 
-const token = localStorage.getItem("accessToken");
-
-// Function to determine severity based on action type
-function getSeverityForAction(action) {
-  switch (action.toUpperCase()) {
-    case "DELETE":
-      return "high"; // Deletions are high severity
-    case "CREATE":
-    case "UPDATE":
-    case "VIEW":
-    default:
-      return "low"; // Normal operations are low severity
-  }
-}
-
-// Function to log audit events
-async function logAuditEvent(action, module, entity, details, severity = null) {
-  try {
-    // Use provided severity or determine based on action
-    const finalSeverity = severity || getSeverityForAction(action);
-
-    const auditData = {
-      user: localStorage.getItem("username") || "admin", // Get username from localStorage
-      action: action,
-      module: module,
-      entity: entity,
-      details: details,
-      ipAddress: "", // Can be left empty or get from API
-      severity: finalSeverity,
-    };
-
-    console.log("🔍 AUDIT LOG: Attempting to log audit event:", auditData);
-
-    const response = await apiClient.post("/audit", auditData);
-
-    console.log(
-      "🔍 AUDIT LOG: API Response:",
-      response.status,
-      response.statusText,
-    );
-
-    if (response.ok) {
-      console.log("✅ AUDIT LOG: Successfully logged audit event");
-    } else {
-      console.error(
-        "❌ AUDIT LOG: Failed to log audit event - Status:",
-        response.status,
-      );
-      const errorText = await response.text();
-      console.error("❌ AUDIT LOG: Error details:", errorText);
-    }
-  } catch (error) {
-    console.error("❌ AUDIT LOG: Exception while logging audit event:", error);
-  }
-}
-
-/* ===============================
-   AUTHENTICATION CHECK
-============================== */
 if (!apiClient.isAuthenticated()) {
   window.location.href = "login.html";
 }
 
-// Track if we are editing a product
 let editingProductId = null;
-
-// Current filters
-let currentFilters = {
-  category: "",
-  minPrice: "",
-  maxPrice: "",
-  status: "",
-};
-
-// DataTable instance
+let currentFilters = { category: "", minPrice: "", maxPrice: "", status: "" };
 let table;
 
-// Charts instances
-let categoryChart;
-let stockChart;
+function getSeverityForAction(action) {
+  switch (action.toUpperCase()) {
+    case "DELETE":
+      return "high";
+    case "CREATE":
+    case "UPDATE":
+    case "VIEW":
+    default:
+      return "low";
+  }
+}
 
-//---------- Validation function for add/edit product form------->
+async function logAuditEvent(action, module, entity, details, severity = null) {
+  try {
+    const auditData = {
+      user: localStorage.getItem("username") || "admin",
+      action,
+      module,
+      entity,
+      details,
+      ipAddress: "",
+      severity: severity || getSeverityForAction(action),
+    };
+    const response = await apiClient.post("/audit", auditData);
+    if (!response.ok) {
+      console.error(
+        "AUDIT LOG: Failed to log audit event - Status:",
+        response.status,
+      );
+    } else {
+      console.log("AUDIT LOG: Event logged successfully:", auditData);
+    }
+  } catch (error) {
+    console.error("AUDIT LOG: Exception while logging audit event:", error);
+  }
+}
+
 function validateProductForm(formData) {
   const name = formData.get("productName")?.trim();
   const sku = formData.get("sku")?.trim();
@@ -97,109 +54,86 @@ function validateProductForm(formData) {
   const price = parseFloat(formData.get("price"));
 
   if (!name) {
-    alert("Product name is required.");
+    ToastNotification?.error("Product name is required.") ||
+      alert("Product name is required.");
     return false;
   }
   if (!sku) {
-    alert("SKU is required.");
+    ToastNotification?.error("SKU is required.") || alert("SKU is required.");
     return false;
   }
   if (!category) {
-    alert("Category is required.");
+    ToastNotification?.error("Category is required.") ||
+      alert("Category is required.");
     return false;
   }
-  if (category === "Other") {
-    if (!customCategory) {
-      alert("Custom category is required when 'Other' is selected.");
-      return false;
-    }
-    category = customCategory;
+  if (category === "Other" && !customCategory) {
+    ToastNotification?.error(
+      "Custom category is required when 'Other' is selected.",
+    ) || alert("Custom category is required when 'Other' is selected.");
+    return false;
   }
+  if (category === "Other") category = customCategory;
   if (isNaN(quantity) || quantity < 0) {
-    alert("Quantity must be a non-negative number.");
+    ToastNotification?.error("Quantity must be a non-negative number.") ||
+      alert("Quantity must be a non-negative number.");
     return false;
   }
   if (isNaN(price) || price <= 0) {
-    alert("Price must be a positive number.");
+    ToastNotification?.error("Price must be a positive number.") ||
+      alert("Price must be a positive number.");
     return false;
   }
   return true;
 }
-// <--------------validation end--------->
 
-// ---------Toast notification function------>
 function showToast(message, type = "info") {
   const toast = document.getElementById("toast");
   if (!toast) return;
-
   toast.textContent = message;
   toast.className = `toast ${type}`;
-
-  // Show toast
-  setTimeout(() => {
-    toast.classList.add("show");
-  }, 100);
-
-  // Hide toast after 3 seconds
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 3000);
+  setTimeout(() => toast.classList.add("show"), 100);
+  setTimeout(() => toast.classList.remove("show"), 3000);
 }
-//---------------toast end -------->
 
-//-----Clear form error messages--->
 function clearFormErrors() {
-  const errorElements = document.querySelectorAll(".error-message");
-  errorElements.forEach((element) => {
-    element.textContent = "";
-  });
+  document
+    .querySelectorAll(".error-message")
+    .forEach((element) => (element.textContent = ""));
 }
 
-//------- Display validation errors from backend---->
 function displayValidationErrors(errors) {
   clearFormErrors();
-
   if (errors && typeof errors === "object") {
+    const fieldMapping = {
+      ProductName: "product-name",
+      Name: "product-name",
+      Sku: "product-sku",
+      CategoryName: "product-category",
+      Category: "product-category",
+      Quantity: "product-quantity",
+      Price: "product-price",
+      Description: "product-description",
+    };
     Object.keys(errors).forEach((field) => {
       const errorMessages = errors[field];
-
       if (Array.isArray(errorMessages) && errorMessages.length > 0) {
-        // Map backend field names to form field IDs
-        const fieldMapping = {
-          ProductName: "product-name",
-          Name: "product-name",
-          Sku: "product-sku",
-          CategoryName: "product-category",
-          Category: "product-category",
-          Quantity: "product-quantity",
-          Price: "product-price",
-          Description: "product-description",
-        };
-
         const formFieldId = fieldMapping[field] || field.toLowerCase();
         const errorElement = document.getElementById(`${formFieldId}-error`);
-        if (errorElement) {
-          errorElement.textContent = errorMessages[0]; // Show first error message
-        }
+        if (errorElement) errorElement.textContent = errorMessages[0];
       }
     });
   }
 }
-//---------------------------End----------------------------->
 
-// ===============================
-// Initialize page (runs automatically)
-// ===============================
 (async function init() {
-  // Initialize DataTable
   table = $("#products-table").DataTable({
     ajax: {
       url: API_BASE + "/products",
       headers: {
         Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
-      data: function (d) {
-        // Add custom filters to the request
+      data: (d) => {
         d.category = currentFilters.category;
         d.minPrice = currentFilters.minPrice;
         d.maxPrice = currentFilters.maxPrice;
@@ -207,25 +141,16 @@ function displayValidationErrors(errors) {
       },
       dataSrc: "",
     },
-
-    /* ===============================
-         DEFAULT DATATABLE FEATURES
-     ================================ */
-    paging: true, // Pagination
-    searching: true, // Global search
-    ordering: true, // Column sorting
-    info: true, // Info text
-    processing: true, // Processing indicator
-    responsive: true, // Responsive table
-
-    pageLength: 10, // Default rows per page
+    paging: true,
+    searching: true,
+    ordering: true,
+    info: true,
+    processing: true,
+    responsive: true,
+    pageLength: 10,
     lengthMenu: [5, 10, 25, 50, 100],
-
-    order: [[1, "desc"]], // Default sort by ID DESC
-
-    // Custom DOM layout for better space utilization
+    order: [[1, "desc"]],
     dom: '<"table-controls-wrapper"<"table-info"i><"table-search"f>>rt<"table-footer"<"table-length"l><"table-pagination"p>>',
-
     language: {
       search: "",
       searchPlaceholder: "Search products...",
@@ -233,38 +158,29 @@ function displayValidationErrors(errors) {
       info: "_START_ - _END_ of _TOTAL_ products",
       emptyTable: "No products available",
     },
-
     columns: [
       {
         data: "id",
-        render: (data, type, row, meta) => {
-          if (type === "display") {
-            return meta.row + meta.settings._iDisplayStart + 1;
-          }
-          return data;
-        },
+        render: (data, type, row, meta) =>
+          type === "display"
+            ? meta.row + meta.settings._iDisplayStart + 1
+            : data,
       },
       { data: "name" },
       { data: "categoryName" },
       { data: "quantity" },
-      {
-        data: "price",
-        render: (data) => `$${data.toFixed(2)}`,
-      },
+      { data: "price", render: (data) => `$${data.toFixed(2)}` },
       {
         data: "quantity",
-        render: (data, type, row) => {
-          const quantity = parseInt(data);
-          let statusClass = "out-of-stock";
-          let statusText = "Out of Stock";
-          if (quantity > 0 && quantity < 5) {
-            statusClass = "low-stock";
-            statusText = "Low Stock";
-          } else if (quantity >= 5) {
-            statusClass = "in-stock";
-            statusText = "In Stock";
-          }
-          return `<span class="status-badge ${statusClass}">${statusText}</span>`;
+        render: (data) => {
+          const q = parseInt(data);
+          const s =
+            q === 0
+              ? ["out-of-stock", "Out of Stock"]
+              : q < 5
+                ? ["low-stock", "Low Stock"]
+                : ["in-stock", "In Stock"];
+          return `<span class="status-badge ${s[0]}">${s[1]}</span>`;
         },
       },
       {
@@ -278,7 +194,6 @@ function displayValidationErrors(errors) {
     ],
   });
 
-  // Get references to UI elements
   const addProductBtn = document.getElementById("add-product-btn");
   const modal = document.getElementById("add-product-modal");
   const closeModal = document.getElementById("close-modal");
@@ -286,7 +201,6 @@ function displayValidationErrors(errors) {
   const categorySelect = document.getElementById("product-category");
   const customCategoryInput = document.getElementById("custom-category");
 
-  // Handle category select change
   if (categorySelect) {
     categorySelect.addEventListener("change", function () {
       if (this.value === "Other") {
@@ -300,58 +214,72 @@ function displayValidationErrors(errors) {
     });
   }
 
-  // ===============================
-  // Open "Add Product" modal
-  // ===============================
   if (addProductBtn) {
     addProductBtn.addEventListener("click", function () {
       editingProductId = null;
       document.getElementById("modal-title").textContent = "Add New Product";
       document.getElementById("submit-btn").textContent = "Add Product";
-      addProductForm.reset(); // Clear old values
+      addProductForm.reset();
       customCategoryInput.style.display = "none";
       customCategoryInput.required = false;
-      clearFormErrors(); // Clear any previous errors
-      modal.classList.add("show"); // Show modal
+      clearFormErrors();
+      modal.classList.add("show");
     });
   }
 
-  // Event delegation for edit, delete, and view
+  // Submit button click handler
+  const submitBtn = document.getElementById("submit-btn");
+  if (submitBtn) {
+    submitBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      handleFormSubmission();
+    });
+  }
+
+  // Filter event listeners
+  $("#apply-filters").on("click", function () {
+    currentFilters.category = $("#filter-category").val();
+    currentFilters.minPrice = $("#filter-min-price").val();
+    currentFilters.maxPrice = $("#filter-max-price").val();
+    currentFilters.status = $("#filter-status").val();
+    table.ajax.reload();
+    loadCategoryChart();
+    loadStockLevelsChart();
+  });
+
+  $("#clear-filters").on("click", function () {
+    $("#filter-category").val("");
+    $("#filter-min-price").val("");
+    $("#filter-max-price").val("");
+    $("#filter-status").val("");
+    currentFilters = { category: "", minPrice: "", maxPrice: "", status: "" };
+    table.ajax.reload();
+    loadCategoryChart();
+    loadStockLevelsChart();
+  });
+
   $("#products-table").on("click", ".edit-btn", function () {
-    const productId = $(this).data("id");
-    editProduct(productId);
+    editProduct($(this).data("id"));
   });
-
   $("#products-table").on("click", ".delete-btn", function () {
-    const productId = $(this).data("id");
-    deleteProduct(productId);
+    deleteProduct($(this).data("id"));
   });
-
   $("#products-table").on("click", ".view-btn", function () {
-    const productId = $(this).data("id");
-    viewProduct(productId);
+    viewProduct($(this).data("id"));
   });
 
-  // View modal close handler
   const viewModal = document.getElementById("view-product-modal");
   const closeViewModal = document.getElementById("close-view-modal");
-
-  if (closeViewModal && viewModal) {
-    closeViewModal.addEventListener("click", function (event) {
-      event.preventDefault();
+  if (closeViewModal && viewModal)
+    closeViewModal.addEventListener("click", (e) => {
+      e.preventDefault();
       viewModal.classList.remove("show");
     });
-  }
-
-  if (viewModal) {
-    window.addEventListener("click", function (event) {
-      if (event.target === viewModal) {
-        viewModal.classList.remove("show");
-      }
+  if (viewModal)
+    window.addEventListener("click", (e) => {
+      if (e.target === viewModal) viewModal.classList.remove("show");
     });
-  }
 
-  // View product function
   async function viewProduct(productId) {
     try {
       const response = await fetch(`${API_BASE}/products/${productId}`, {
@@ -359,11 +287,8 @@ function displayValidationErrors(errors) {
           Authorization: "Bearer " + localStorage.getItem("accessToken"),
         },
       });
-
       if (response.ok) {
         const product = await response.json();
-
-        // Populate modal with product data
         document.getElementById("view-product-id").textContent = product.id;
         document.getElementById("view-product-name").textContent = product.name;
         document.getElementById("view-product-sku").textContent = product.sku;
@@ -373,21 +298,15 @@ function displayValidationErrors(errors) {
           product.quantity;
         document.getElementById("view-product-price").textContent =
           `$${product.price.toFixed(2)}`;
-
-        // Status badge
-        const quantity = parseInt(product.quantity);
-        let statusClass = "out-of-stock";
-        let statusText = "Out of Stock";
-        if (quantity > 0 && quantity < 5) {
-          statusClass = "low-stock";
-          statusText = "Low Stock";
-        } else if (quantity >= 5) {
-          statusClass = "in-stock";
-          statusText = "In Stock";
-        }
+        const q = parseInt(product.quantity);
+        const s =
+          q === 0
+            ? ["out-of-stock", "Out of Stock"]
+            : q < 5
+              ? ["low-stock", "Low Stock"]
+              : ["in-stock", "In Stock"];
         document.getElementById("view-product-status").innerHTML =
-          `<span class="status-badge ${statusClass}">${statusText}</span>`;
-
+          `<span class="status-badge ${s[0]}">${s[1]}</span>`;
         document.getElementById("view-product-description").textContent =
           product.description || "No description";
         document.getElementById("view-product-created").textContent =
@@ -398,8 +317,6 @@ function displayValidationErrors(errors) {
           product.updatedAt
             ? new Date(product.updatedAt).toLocaleString()
             : "N/A";
-
-        // Show modal
         viewModal.classList.add("show");
       } else {
         showToast("Failed to load product details", "error");
@@ -410,47 +327,22 @@ function displayValidationErrors(errors) {
     }
   }
 
-  // ===============================
-  // Close modal using close (X) button
-  // ===============================
-  if (closeModal && modal) {
-    closeModal.addEventListener("click", function (event) {
-      event.preventDefault();
+  if (closeModal && modal)
+    closeModal.addEventListener("click", (e) => {
+      e.preventDefault();
       modal.classList.remove("show");
     });
-  }
-
-  // ===============================
-  // Close modal when clicking outside it
-  // ===============================
-  if (modal) {
-    window.addEventListener("click", function (event) {
-      if (event.target === modal) {
-        modal.classList.remove("show");
-      }
+  if (modal)
+    window.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.remove("show");
     });
-  }
 
-  // ===============================
-  // Handle form submission
-  // ===============================
   async function handleFormSubmission() {
-    // Clear previous error messages
     clearFormErrors();
-
-    // Read form values
     const formData = new FormData(addProductForm);
-
-    // Validate form
-    if (!validateProductForm(formData)) {
-      return; // Stop if validation fails
-    }
-
-    // Create product object to send to API
+    if (!validateProductForm(formData)) return;
     let category = formData.get("category");
-    if (category === "Other") {
-      category = formData.get("customCategory");
-    }
+    if (category === "Other") category = formData.get("customCategory");
     const productData = {
       name: formData.get("productName"),
       sku: formData.get("sku"),
@@ -465,10 +357,8 @@ function displayValidationErrors(errors) {
         ? `${API_BASE}/products/${editingProductId}`
         : `${API_BASE}/products`;
       const method = editingProductId ? "PUT" : "POST";
-
-      // Send request to save/update product
       const response = await fetch(url, {
-        method: method,
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + localStorage.getItem("accessToken"),
@@ -476,335 +366,413 @@ function displayValidationErrors(errors) {
         body: JSON.stringify(productData),
       });
 
-      // Handle API errors
       if (!response.ok) {
         if (response.status === 400) {
-          // Try to parse validation errors
           try {
             const errorData = await response.json();
-            if (errorData.errors) {
-              displayValidationErrors(errorData.errors);
-              return; // Don't show alert, errors are displayed in form
-            }
-          } catch (parseError) {
-            // If parsing fails, fall back to text
+            if (errorData.errors) displayValidationErrors(errorData.errors);
+          } catch {
+            showToast("An error occurred", "error");
           }
+        } else {
+          showToast("Failed to save product", "error");
         }
-
-        const errorText = await response.text();
-        throw new Error(
-          `Failed to ${
-            editingProductId ? "update" : "save"
-          } product: ${errorText}`,
-        );
+        return;
       }
 
-      // Reload table after saving
-      table.ajax.reload(null, false);
-
-      // Log audit event with appropriate severity
-      const auditAction = editingProductId ? "UPDATE" : "CREATE";
-      const auditDetails = editingProductId
-        ? `Updated product: ${productData.name}`
-        : `Added new product: ${productData.name}`;
+      const savedProduct = await response.json();
       await logAuditEvent(
-        auditAction,
+        editingProductId ? "UPDATE" : "CREATE",
         "Inventory",
-        `Product ${editingProductId || "new"}`,
-        auditDetails,
+        "Product",
+        `Product ${savedProduct.name} ${editingProductId ? "updated" : "created"} successfully`,
       );
-
-      // Show success toast
-      const action = editingProductId ? "updated" : "added";
-      showToast(`Product ${action} successfully!`, "success");
-
-      // Close modal and reset form
       modal.classList.remove("show");
-      addProductForm.reset();
+
+      // Check if DataTable is initialized
+      if (!table || typeof table.ajax.reload !== "function") {
+        console.error("DataTable not initialized. Reloading page...");
+        window.location.reload();
+        return;
+      }
+
+      console.log("Reloading DataTable...");
+      table.ajax.reload();
+      console.log("DataTable reloaded!");
+
+      // Reload charts
+      if (typeof reloadCharts === "function") {
+        await reloadCharts();
+      }
+
+      showToast(
+        `Product ${editingProductId ? "updated" : "added"} successfully`,
+        "success",
+      );
       editingProductId = null;
     } catch (error) {
-      console.error(
-        `Error ${editingProductId ? "updating" : "saving"} product:`,
-        error,
-      );
-      alert(error.message);
+      console.error("Error saving product:", error);
+      showToast("An error occurred while saving the product", "error");
     }
   }
 
-  //-------- Update summary cards from server----------->
-  async function updateSummaryCards() {
+  async function editProduct(productId) {
     try {
-      const response = await apiClient.get("/products/summary");
-      const data = await response.json();
-      document.getElementById("total-products").textContent =
-        data.totalProducts;
-      document.getElementById("low-stock").textContent = data.lowStock;
-      document.getElementById("out-of-stock").textContent = data.outOfStock;
-      document.getElementById("total-value").textContent =
-        `$${data.totalValue.toFixed(2)}`;
-    } catch (error) {
-      console.error("Error fetching summary:", error);
-    }
-  }
-  //--------------End summary Card--------->
-
-  // ---------Update charts------------>
-  async function updateCharts() {
-    try {
-      // Category chart
-      const categoryResponse = await apiClient.get("/products/chart/category");
-      const categoryData = await categoryResponse.json();
-      const categoryLabels = Object.keys(categoryData);
-      const categoryValues = Object.values(categoryData);
-
-      if (categoryChart) {
-        categoryChart.destroy();
-      }
-      categoryChart = new ApexCharts(
-        document.querySelector("#inventory-category-chart"),
-        {
-          series: categoryValues,
-          chart: { type: "pie", height: 300 },
-          labels: categoryLabels,
-          title: { text: "Products by Category" },
+      const response = await fetch(`${API_BASE}/products/${productId}`, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("accessToken"),
         },
-      );
-      categoryChart.render();
-
-      // Stock levels chart
-      const stockResponse = await apiClient.get("/products/chart/stock-levels");
-      const stockData = await stockResponse.json();
-
-      if (stockChart) {
-        stockChart.destroy();
-      }
-      stockChart = new ApexCharts(
-        document.querySelector("#stock-levels-chart"),
-        {
-          series: [
-            {
-              name: "Products",
-              data: [
-                stockData["In Stock"],
-                stockData["Low Stock"],
-                stockData["Out of Stock"],
-              ],
-            },
-          ],
-          chart: { type: "bar", height: 300 },
-          xaxis: { categories: ["In Stock", "Low Stock", "Out of Stock"] },
-          title: { text: "Stock Levels" },
-        },
-      );
-      stockChart.render();
-    } catch (error) {
-      console.error("Error updating charts:", error);
-    }
-  }
-  //---------------End Charts-------------->
-
-  // ===============================
-  // Handle Add Product form submission
-  // ===============================
-  if (addProductForm) {
-    // Handle form submission via submit button click (since it's now a link)
-    const submitBtn = document.getElementById("submit-btn");
-    if (submitBtn) {
-      submitBtn.addEventListener("click", async function (event) {
-        event.preventDefault();
-        await handleFormSubmission();
       });
+      if (response.ok) {
+        const product = await response.json();
+        editingProductId = productId;
+        document.getElementById("modal-title").textContent = "Edit Product";
+        document.getElementById("submit-btn").textContent = "Update Product";
+        document.getElementById("product-name").value = product.name;
+        document.getElementById("product-sku").value = product.sku;
+        document.getElementById("product-category").value =
+          product.categoryName || "";
+        document.getElementById("custom-category").value =
+          product.categoryName || "";
+        document.getElementById("product-quantity").value = product.quantity;
+        document.getElementById("product-price").value = product.price;
+        document.getElementById("product-description").value =
+          product.description || "";
+        customCategoryInput.style.display = product.categoryName
+          ? "none"
+          : "block";
+        customCategoryInput.required = product.categoryName ? false : true;
+        clearFormErrors();
+        modal.classList.add("show");
+      } else {
+        showToast("Failed to load product details", "error");
+      }
+    } catch (error) {
+      console.error("Error loading product:", error);
+      showToast("An error occurred while loading the product", "error");
     }
-
-    // Also handle form submit event for Enter key
-    addProductForm.addEventListener("submit", async function (event) {
-      event.preventDefault();
-      await handleFormSubmission();
-    });
   }
 
-  // Initialize summary cards and charts after data loads
-  table.on("draw", async function () {
-    await updateSummaryCards();
-    await updateCharts();
-  });
+  async function deleteProduct(productId) {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+    try {
+      const response = await fetch(`${API_BASE}/products/${productId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("accessToken"),
+        },
+      });
+      if (response.ok) {
+        await logAuditEvent(
+          "DELETE",
+          "Inventory",
+          "Product",
+          `Product with ID ${productId} deleted successfully`,
+        );
 
-  // Initial load
-  await updateSummaryCards();
-  await updateCharts();
+        // Check if DataTable is initialized
+        if (!table || typeof table.ajax.reload !== "function") {
+          console.error("DataTable not initialized. Reloading page...");
+          window.location.reload();
+          return;
+        }
 
-  //-------------FILTERS------------------>
+        console.log("Reloading DataTable after delete...");
+        table.ajax.reload();
+        console.log("DataTable reloaded!");
 
-  // Filter event listeners
-  document
-    .getElementById("apply-filters")
-    .addEventListener("click", applyFilters);
-  document
-    .getElementById("clear-filters")
-    .addEventListener("click", clearFilters);
+        // Reload charts
+        if (typeof reloadCharts === "function") {
+          await reloadCharts();
+        }
+
+        showToast("Product deleted successfully", "success");
+      } else {
+        showToast("Failed to delete product", "error");
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      showToast("An error occurred while deleting the product", "error");
+    }
+  }
+
+  window.handleFormSubmission = handleFormSubmission;
+
+  // Initialize charts after DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => initCharts());
+  } else {
+    initCharts();
+  }
 })();
 
-// ===============================
-// Filter functions
-// ===============================
-async function applyFilters() {
-  // Update current filters from form inputs
-  currentFilters.category = document.getElementById("filter-category").value;
-  currentFilters.minPrice = document.getElementById("filter-min-price").value;
-  currentFilters.maxPrice = document.getElementById("filter-max-price").value;
-  currentFilters.status = document.getElementById("filter-status").value;
-
-  // Reload DataTable with new filters
-  table.ajax.reload();
-}
-
-async function clearFilters() {
-  document.getElementById("filter-category").value = "";
-  document.getElementById("filter-min-price").value = "";
-  document.getElementById("filter-max-price").value = "";
-  document.getElementById("filter-status").value = "";
-
-  currentFilters = {
-    category: "",
-    minPrice: "",
-    maxPrice: "",
-    status: "",
-  };
-
-  // Reload with no filters
-  const url = API_BASE + "/products";
-  try {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-    });
-    if (response.ok) {
-      const data = await response.json();
-      table.clear();
-      table.rows.add(data);
-      table.draw();
+// Charts initialization
+async function initCharts() {
+  // Wait for DOM to be fully ready
+  await new Promise((resolve) => {
+    if (document.readyState === "complete") {
+      resolve();
     } else {
-      console.error("Failed to fetch data");
+      window.addEventListener("load", resolve);
     }
-  } catch (error) {
-    console.error("Error fetching data:", error);
-  }
-}
+  });
 
-//-------------------END FILTERS------------->
-
-// ===============================
-// Edit product
-// ===============================
-async function editProduct(id) {
-  try {
-    const response = await fetch(`${API_BASE}/products/${id}`, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("accessToken"),
-      },
-    });
-    if (!response.ok) throw new Error("Failed to load product");
-    const product = await response.json();
-
-    editingProductId = id;
-    document.getElementById("modal-title").textContent = "Edit Product";
-    document.getElementById("submit-btn").textContent = "Update Product";
-    clearFormErrors(); // Clear any previous errors
-
-    // Fill form
-    document.getElementById("product-name").value = product.name;
-    document.getElementById("product-sku").value = product.sku;
-    const categorySelect = document.getElementById("product-category");
-    const customCategoryInput = document.getElementById("custom-category");
-    const predefinedCategories = [
-      "Electronics",
-      "Clothing",
-      "Books",
-      "Home & Garden",
-      "Sports",
-    ];
-    if (predefinedCategories.includes(product.categoryName)) {
-      categorySelect.value = product.categoryName;
-      customCategoryInput.style.display = "none";
-      customCategoryInput.required = false;
-      customCategoryInput.value = "";
-    } else {
-      categorySelect.value = "Other";
-      customCategoryInput.style.display = "block";
-      customCategoryInput.required = true;
-      customCategoryInput.value = product.categoryName;
-    }
-    document.getElementById("product-quantity").value = product.quantity;
-    document.getElementById("product-price").value = product.price;
-    document.getElementById("product-description").value = product.description;
-
-    document.getElementById("add-product-modal").classList.add("show");
-  } catch (error) {
-    console.error("Error loading product for edit:", error);
-    alert("Failed to load product for editing.");
-  }
-}
-
-// ===============================
-// Delete product
-// ===============================
-async function deleteProduct(id) {
-  if (!confirm("Are you sure you want to delete this product?")) return;
+  // Additional delay to ensure ApexCharts and DOM are ready
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
   try {
-    const response = await fetch(`${API_BASE}/products/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("accessToken"),
-      },
-    });
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to delete product: ${errorText}`);
-    }
-
-    // Log audit event
-    await logAuditEvent(
-      "delete",
-      "inventory",
-      `Product ${id}`,
-      `Deleted product with ID ${id}`,
-    );
-
-    table.ajax.reload(null, false); // Reload table
-    showToast("Product deleted successfully!", "success");
+    await reloadCharts();
   } catch (error) {
-    console.error("Error deleting product:", error);
-    alert(error.message);
+    console.error("Error during chart initialization:", error);
   }
 }
 
-// ==============================
-// User Profile Functions
-// ==============================
-function showProfile() {
-  showToast("Profile view coming soon!", "info");
+// Reload all charts
+async function reloadCharts() {
+  console.log("Reloading charts...");
+
+  // Destroy existing charts
+  Object.keys(chartInstances).forEach((chartId) => {
+    if (chartInstances[chartId]) {
+      try {
+        chartInstances[chartId].destroy();
+      } catch (error) {
+        console.warn(`Error destroying chart ${chartId}:`, error);
+      }
+      delete chartInstances[chartId];
+    }
+  });
+
+  // Load fresh chart data
+  await loadCategoryChart();
+  await loadStockLevelsChart();
+  console.log("Charts reloaded!");
 }
 
-function editProfilePicture() {
-  showToast("Profile picture editor coming soon!", "info");
-}
+// Make reloadCharts available globally
+window.reloadCharts = reloadCharts;
 
-function changePassword() {
-  showToast("Password change feature coming soon!", "info");
-}
+const chartInstances = {};
 
-function accountSettings() {
-  showToast("Account settings coming soon!", "info");
-}
-
-function helpSupport() {
-  showToast("Help & Support center coming soon!", "info");
-}
-
-function logout() {
-  if (confirm("Are you sure you want to logout?")) {
-    apiClient.logout();
+function renderChart(chartId, config) {
+  const chartElement = document.querySelector(`#${chartId}`);
+  if (!chartElement) {
+    console.error(`Chart container not found: #${chartId}`);
+    // Try to find the element again after a short delay
+    setTimeout(() => {
+      const retryElement = document.querySelector(`#${chartId}`);
+      if (retryElement) {
+        console.log(`Found chart container on retry: #${chartId}`);
+        renderChartNow(chartId, config);
+      } else {
+        console.error(
+          `Chart container still not found after retry: #${chartId}`,
+        );
+      }
+    }, 500);
+    return;
   }
+
+  renderChartNow(chartId, config);
+}
+
+function renderChartNow(chartId, config) {
+  const chartElement = document.querySelector(`#${chartId}`);
+  if (!chartElement) return;
+
+  // Destroy existing chart if it exists
+  if (chartInstances[chartId]) {
+    try {
+      chartInstances[chartId].destroy();
+    } catch (error) {
+      console.warn(`Error destroying chart ${chartId}:`, error);
+    }
+    delete chartInstances[chartId];
+  }
+
+  // Set explicit dimensions for the chart container
+  chartElement.style.width = "100%";
+  chartElement.style.minHeight = "350px";
+
+  try {
+    console.log(`Rendering chart: ${chartId}`, config);
+    const chart = new ApexCharts(chartElement, config);
+    chart.render();
+    chartInstances[chartId] = chart;
+    console.log(`Chart rendered successfully: ${chartId}`);
+    return chart;
+  } catch (error) {
+    console.error(`Error rendering ${chartId} chart:`, error);
+    return null;
+  }
+}
+
+function loadCategoryChart() {
+  const url = `${API_BASE}/products/chart/category`;
+  console.log("Loading category chart from:", url);
+
+  fetch(url, {
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("accessToken"),
+    },
+  })
+    .then((response) => {
+      console.log("Category chart response status:", response.status);
+      if (!response.ok) throw new Error("Failed to fetch category chart data");
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Category chart data received:", data);
+      // data is a Dictionary<string, int> like {"Electronics": 45, "Clothing": 30}
+      const categories = Object.keys(data);
+      const chartData = Object.values(data);
+      console.log("Categories:", categories, "ChartData:", chartData);
+
+      if (categories.length === 0) {
+        console.warn("No category data available");
+        return;
+      }
+
+      const config = {
+        series: [{ data: chartData }],
+        chart: {
+          type: "bar",
+          height: 350,
+          toolbar: { show: false },
+        },
+        colors: [
+          "#246dec",
+          "#cc3c43",
+          "#367952",
+          "#f5b747",
+          "#4f35a1",
+          "#e91e63",
+          "#00bcd4",
+        ],
+        plotOptions: {
+          bar: {
+            borderRadius: 4,
+            borderRadiusApplication: "end",
+            horizontal: false,
+            columnWidth: "50%",
+          },
+        },
+        dataLabels: { enabled: false },
+        legend: { show: false },
+        xaxis: { categories: categories },
+        yaxis: { title: { text: "Total Quantity" } },
+      };
+
+      renderChart("inventory-category-chart", config);
+    })
+    .catch((error) => {
+      console.error("Error loading category chart:", error);
+      // Use fallback data
+      const config = {
+        series: [{ data: [45, 30, 25, 20, 15] }],
+        chart: {
+          type: "bar",
+          height: 350,
+          toolbar: { show: false },
+        },
+        colors: ["#246dec", "#cc3c43", "#367952", "#f5b747", "#4f35a1"],
+        plotOptions: {
+          bar: {
+            borderRadius: 4,
+            borderRadiusApplication: "end",
+            horizontal: false,
+            columnWidth: "50%",
+          },
+        },
+        dataLabels: { enabled: false },
+        legend: { show: false },
+        xaxis: {
+          categories: [
+            "Electronics",
+            "Clothing",
+            "Books",
+            "Home & Garden",
+            "Sports",
+          ],
+        },
+        yaxis: { title: { text: "Total Quantity" } },
+      };
+      renderChart("inventory-category-chart", config);
+    });
+}
+
+function loadStockLevelsChart() {
+  const url = `${API_BASE}/products/chart/stock-levels`;
+  console.log("Loading stock levels chart from:", url);
+
+  fetch(url, {
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("accessToken"),
+    },
+  })
+    .then((response) => {
+      console.log("Stock levels chart response status:", response.status);
+      if (!response.ok)
+        throw new Error("Failed to fetch stock levels chart data");
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Stock levels chart data received:", data);
+      // data is a Dictionary<string, int> like {"In Stock": 229, "Low Stock": 15, "Out of Stock": 5}
+      const labels = ["In Stock", "Low Stock", "Out of Stock"];
+      const chartData = labels.map((label) => data[label] || 0);
+      console.log("Stock levels:", labels, "Data:", chartData);
+
+      const config = {
+        series: chartData,
+        chart: {
+          height: 350,
+          type: "donut",
+          toolbar: { show: false },
+        },
+        labels: labels,
+        colors: ["#367952", "#f5b747", "#cc3c43"],
+        responsive: [
+          {
+            breakpoint: 480,
+            options: {
+              chart: { width: 200 },
+              legend: { position: "bottom" },
+            },
+          },
+        ],
+        legend: {
+          position: "bottom",
+        },
+      };
+
+      renderChart("stock-levels-chart", config);
+    })
+    .catch((error) => {
+      console.error("Error loading stock levels chart:", error);
+      // Use fallback data
+      const config = {
+        series: [229, 15, 5],
+        chart: {
+          height: 350,
+          type: "donut",
+          toolbar: { show: false },
+        },
+        labels: ["In Stock", "Low Stock", "Out of Stock"],
+        colors: ["#367952", "#f5b747", "#cc3c43"],
+        responsive: [
+          {
+            breakpoint: 480,
+            options: {
+              chart: { width: 200 },
+              legend: { position: "bottom" },
+            },
+          },
+        ],
+        legend: {
+          position: "bottom",
+        },
+      };
+      renderChart("stock-levels-chart", config);
+    });
 }

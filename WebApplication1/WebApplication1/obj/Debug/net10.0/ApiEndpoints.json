@@ -1,5 +1,37 @@
 [
   {
+    "ContainingType": "WebApplication1.Controllers.AlertsController",
+    "Method": "GetAlerts",
+    "RelativePath": "api/alerts",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "X-Api-Version",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApplication1.Controllers.AlertsController",
+    "Method": "GetAlertCount",
+    "RelativePath": "api/alerts/count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "X-Api-Version",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "WebApplication1.Controllers.AuditController",
     "Method": "LogAuditEvent",
     "RelativePath": "api/audit",

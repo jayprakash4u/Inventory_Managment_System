@@ -12,6 +12,7 @@ namespace WebApplication1.CrossCutting.Middleware
             _next = next;
         }
 
+// This method runs on Every request
         public async Task InvokeAsync(HttpContext context)
         {
             // Security Headers

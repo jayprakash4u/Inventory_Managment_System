@@ -7,6 +7,7 @@ namespace WebApplication1.Repository
     public class CustomerOrderRepository : ICustomerOrderRepository
     {
         private readonly AppDbContext _context;
+
         public CustomerOrderRepository(AppDbContext context)
         {
             _context = context;
@@ -14,17 +15,13 @@ namespace WebApplication1.Repository
 
         public async Task<IEnumerable<CustomerOrder>> GetAllCustomerOrdersAsync(string? status = null, string? customer = null, string? dateRange = null)
         {
-            var query = _context.CustomerOrders.AsQueryable();
+            var query = _context.CustomerOrders.AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrEmpty(status))
-            {
                 query = query.Where(o => o.Status == status);
-            }
 
             if (!string.IsNullOrEmpty(customer))
-            {
                 query = query.Where(o => o.CustomerName.Contains(customer));
-            }
 
             if (!string.IsNullOrEmpty(dateRange))
             {
@@ -70,7 +67,8 @@ namespace WebApplication1.Repository
         public async Task<Dictionary<string, int>> GetOrdersByStatusAsync()
         {
             return await _context.CustomerOrders
-                .GroupBy(o => o.Status)
+                .AsNoTracking()
+                .GroupBy(o => o.Status ?? "Unknown")
                 .Select(g => new { Status = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(g => g.Status, g => g.Count);
         }
@@ -78,6 +76,7 @@ namespace WebApplication1.Repository
         public async Task<object> GetSummaryAsync()
         {
             var summary = await _context.CustomerOrders
+                .AsNoTracking()
                 .GroupBy(o => 1)
                 .Select(g => new
                 {
@@ -88,13 +87,7 @@ namespace WebApplication1.Repository
                 })
                 .FirstOrDefaultAsync();
 
-            return summary ?? new
-            {
-                TotalOrders = 0,
-                Pending = 0,
-                Delivered = 0,
-                TotalRevenue = 0M
-            };
+            return summary ?? new { TotalOrders = 0, Pending = 0, Delivered = 0, TotalRevenue = 0m };
         }
     }
 }

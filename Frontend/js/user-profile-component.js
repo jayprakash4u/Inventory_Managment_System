@@ -1,63 +1,185 @@
 /* ===============================
     USER PROFILE COMPONENT
     Handles user profile display and menu interactions
-=============================== */
+ =============================== */
 
-$(document).ready(function () {
-  initializeUserProfile();
-});
+// Initialize with fallback for jQuery availability
+function initializeUserProfileComponent() {
+  if (typeof $ !== "undefined") {
+    // jQuery is available
+    initializeUserProfile();
+  } else {
+    // Fallback to vanilla JavaScript
+    initializeUserProfileVanilla();
+  }
+}
 
+// jQuery-based initialization
 function initializeUserProfile() {
   // Get current user from API
   const currentUser = apiClient.getStoredUser();
 
   if (currentUser) {
-    const displayName = currentUser.username || "User";
+    const displayName =
+      currentUser.username || currentUser.displayName || "User";
     const userEmail = currentUser.email || "user@example.com";
 
-    // Update menu display
-    $("#menuUserName").text(displayName);
-    $("#menuUserEmail").text(userEmail);
+    // Update menu display - with null checks
+    const nameEl = document.getElementById("menuUserName");
+    const emailEl = document.getElementById("menuUserEmail");
+    if (nameEl) {
+      nameEl.textContent = displayName;
+    }
+    if (emailEl) {
+      emailEl.textContent = userEmail;
+    }
 
     // Generate profile pic initial
     const initial = displayName.charAt(0).toUpperCase();
     const profilePicUrl = `https://ui-avatars.com/api/?name=${initial}&background=246dec&color=fff&size=32`;
-    $("#profilePic").attr("src", profilePicUrl);
-    $("#menuProfilePic").attr("src", profilePicUrl);
+
+    const profilePicEl = document.getElementById("profilePic");
+    const menuProfilePicEl = document.getElementById("menuProfilePic");
+
+    if (profilePicEl) {
+      profilePicEl.src = profilePicUrl;
+      profilePicEl.style.display = "block";
+      profilePicEl.alt = `${displayName} Profile`;
+    }
+    if (menuProfilePicEl) {
+      menuProfilePicEl.src = profilePicUrl;
+      menuProfilePicEl.alt = `${displayName} Profile`;
+    }
   }
 
-  // User menu toggle
-  $(".user-profile").on("click", function (e) {
-    e.stopPropagation();
-    const menu = $(this).find(".user-menu");
-    const isExpanded = $(this).attr("aria-expanded") === "true";
-    if (isExpanded) {
-      menu.removeClass("show");
-      $(this).attr("aria-expanded", "false");
-    } else {
-      menu.addClass("show");
-      $(this).attr("aria-expanded", "true");
+  // User menu toggle with jQuery
+  if (typeof $ !== "undefined") {
+    $(".user-profile")
+      .off("click")
+      .on("click", function (e) {
+        e.stopPropagation();
+        const menu = $(this).find(".user-menu");
+        const isExpanded = $(this).attr("aria-expanded") === "true";
+        if (isExpanded) {
+          menu.removeClass("show");
+          $(this).attr("aria-expanded", "false");
+        } else {
+          menu.addClass("show");
+          $(this).attr("aria-expanded", "true");
+        }
+      });
+
+    // Close menu when clicking outside
+    $(document)
+      .off("click.userprofile")
+      .on("click.userprofile", function (e) {
+        if (!$(e.target).closest(".user-profile").length) {
+          $(".user-menu").removeClass("show");
+          $(".user-profile").attr("aria-expanded", "false");
+        }
+      });
+  }
+}
+
+// Vanilla JavaScript fallback initialization
+function initializeUserProfileVanilla() {
+  // Get current user from API
+  const currentUser = apiClient.getStoredUser();
+
+  if (currentUser) {
+    const displayName =
+      currentUser.username || currentUser.displayName || "User";
+    const userEmail = currentUser.email || "user@example.com";
+
+    // Update menu display
+    const nameEl = document.getElementById("menuUserName");
+    const emailEl = document.getElementById("menuUserEmail");
+    if (nameEl) {
+      nameEl.textContent = displayName;
     }
+    if (emailEl) {
+      emailEl.textContent = userEmail;
+    }
+
+    // Generate profile pic initial
+    const initial = displayName.charAt(0).toUpperCase();
+    const profilePicUrl = `https://ui-avatars.com/api/?name=${initial}&background=246dec&color=fff&size=32`;
+
+    const profilePicEl = document.getElementById("profilePic");
+    const menuProfilePicEl = document.getElementById("menuProfilePic");
+
+    if (profilePicEl) {
+      profilePicEl.src = profilePicUrl;
+      profilePicEl.style.display = "block";
+      profilePicEl.alt = `${displayName} Profile`;
+    }
+    if (menuProfilePicEl) {
+      menuProfilePicEl.src = profilePicUrl;
+      menuProfilePicEl.alt = `${displayName} Profile`;
+    }
+  }
+
+  // User menu toggle with vanilla JS
+  const profileElements = document.querySelectorAll(".user-profile");
+
+  profileElements.forEach((profileEl) => {
+    // Remove old listeners by cloning
+    const newProfileEl = profileEl.cloneNode(true);
+    profileEl.parentNode.replaceChild(newProfileEl, profileEl);
+
+    newProfileEl.addEventListener("click", function (e) {
+      e.stopPropagation();
+      e.preventDefault();
+      const menu = this.querySelector(".user-menu");
+      if (menu) {
+        const isExpanded = this.getAttribute("aria-expanded") === "true";
+        if (isExpanded) {
+          menu.classList.remove("show");
+          this.setAttribute("aria-expanded", "false");
+        } else {
+          menu.classList.add("show");
+          this.setAttribute("aria-expanded", "true");
+        }
+      }
+    });
   });
 
   // Close menu when clicking outside
-  $(document).on("click", function (e) {
-    if (!$(e.target).closest(".user-profile").length) {
-      $(".user-menu").removeClass("show");
-      $(".user-profile").attr("aria-expanded", "false");
+  document.addEventListener("click", function (e) {
+    const profileEl = e.target.closest(".user-profile");
+    if (!profileEl) {
+      document.querySelectorAll(".user-menu").forEach((menu) => {
+        menu.classList.remove("show");
+      });
+      document.querySelectorAll(".user-profile").forEach((el) => {
+        el.setAttribute("aria-expanded", "false");
+      });
     }
+  });
+}
+
+// Initialize when DOM is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeUserProfileComponent);
+} else {
+  initializeUserProfileComponent();
+}
+
+// Re-initialize on jQuery ready if it loads later
+if (typeof $ !== "undefined") {
+  $(document).ready(function () {
+    initializeUserProfileComponent();
   });
 }
 
 /* ===============================
     USER PROFILE MENU ACTIONS
-=============================== */
+ =============================== */
 
 /**
  * View Profile - Shows user's profile information
  */
 function showProfile() {
-  console.log("View Profile clicked");
   loadAndShowProfile();
 }
 
@@ -66,24 +188,29 @@ function showProfile() {
  */
 async function loadAndShowProfile() {
   try {
-    console.log("Loading profile data...");
     const profileData = await apiClient.getUserProfile();
     if (profileData && profileData.data) {
       const user = profileData.data;
-      console.log("Profile data loaded:", user);
 
       // Set profile picture
-      const profilePic = user.profilePictureUrl || `https://ui-avatars.com/api/?name=${user.fullName?.charAt(0) || 'U'}&background=246dec&color=fff&size=120`;
+      const profilePic =
+        user.profilePictureUrl ||
+        `https://ui-avatars.com/api/?name=${user.fullName?.charAt(0) || "U"}&background=246dec&color=fff&size=120`;
       document.getElementById("profileModalPicture").src = profilePic;
 
       // Set profile information
-      document.getElementById("profileFullName").textContent = user.fullName || "N/A";
+      document.getElementById("profileFullName").textContent =
+        user.fullName || "N/A";
       document.getElementById("profileEmail").textContent = user.email || "N/A";
-      document.getElementById("profilePhone").textContent = user.phoneNumber || "-";
-      document.getElementById("profileDateOfBirth").textContent = user.dateOfBirth
-        ? new Date(user.dateOfBirth).toLocaleDateString()
-        : "-";
-      document.getElementById("profileCreatedAt").textContent = new Date(user.createdAt).toLocaleDateString();
+      document.getElementById("profilePhone").textContent =
+        user.phoneNumber || "-";
+      document.getElementById("profileDateOfBirth").textContent =
+        user.dateOfBirth
+          ? new Date(user.dateOfBirth).toLocaleDateString()
+          : "-";
+      document.getElementById("profileCreatedAt").textContent = new Date(
+        user.createdAt,
+      ).toLocaleDateString();
       document.getElementById("profileUpdatedAt").textContent = user.updatedAt
         ? new Date(user.updatedAt).toLocaleDateString()
         : "Never";
@@ -100,7 +227,6 @@ async function loadAndShowProfile() {
  * Edit Profile Picture - Opens file upload modal
  */
 function editProfilePicture() {
-  console.log("Change Picture clicked");
   resetPictureModal();
   openModal("changePictureModal");
 }
@@ -109,7 +235,6 @@ function editProfilePicture() {
  * Change Password - Opens password change modal
  */
 function changePassword() {
-  console.log("Change Password clicked");
   resetPasswordModal();
   openModal("changePasswordModal");
 }
@@ -118,7 +243,6 @@ function changePassword() {
  * Account Settings - Opens account settings
  */
 function accountSettings() {
-  console.log("Account Settings clicked");
   showEditProfileModal();
 }
 
@@ -126,15 +250,15 @@ function accountSettings() {
  * Help Support - Shows help information
  */
 function helpSupport() {
-  console.log("Help & Support clicked");
-  alert("Help & Support: Contact support@example.com\n\nCommon Issues:\n1. Forgot Password - Use the login page reset option\n2. Profile Picture - JPG or PNG up to 5MB\n3. Password Requirements - Min 6 characters");
+  alert(
+    "Help & Support: Contact support@example.com\n\nCommon Issues:\n1. Forgot Password - Use the login page reset option\n2. Profile Picture - JPG or PNG up to 5MB\n3. Password Requirements - Min 6 characters",
+  );
 }
 
 /**
  * Logout - Clear authentication and redirect
  */
 function logout() {
-  console.log("Logout clicked");
   // Call the API client logout method
   apiClient.logout();
 }

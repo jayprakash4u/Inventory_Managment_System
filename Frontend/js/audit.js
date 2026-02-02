@@ -1,24 +1,6 @@
-/* ===============================
-   AUTHENTICATION CHECK
-=============================== */
-if (!apiClient.isAuthenticated()) {
-  window.location.href = "login.html";
-}
-
-// ===============================
-// Audit Trail page JavaScript
-// ===============================
-
-// Base URL of your backend API
-// All audit-related requests will use this
 const API_BASE = "https://localhost:44383/api";
 
-// Token is already declared in script.js
-
-// DataTable instance
 let auditTable;
-
-// Current filters
 let currentFilters = {
   startDate: "",
   endDate: "",
@@ -28,119 +10,177 @@ let currentFilters = {
   severity: "",
 };
 
-//---------- Validation function for filters------->
-
-//---------Toast notification function------>
 function showToast(message, type = "info") {
   const toast = document.getElementById("toast");
   if (!toast) return;
-
   toast.textContent = message;
   toast.className = `toast ${type}`;
-
-  // Show toast
-  setTimeout(() => {
-    toast.classList.add("show");
-  }, 100);
-
-  // Hide toast after 3 seconds
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 3000);
+  setTimeout(() => toast.classList.add("show"), 100);
+  setTimeout(() => toast.classList.remove("show"), 3000);
 }
-//---------------toast end -------->
 
-//-----Clear form error messages--->
 function clearFormErrors() {
-  const errorElements = document.querySelectorAll(".error-message");
-  errorElements.forEach((element) => {
-    element.textContent = "";
-  });
+  document
+    .querySelectorAll(".error-message")
+    .forEach((element) => (element.textContent = ""));
 }
 
-//------- Display validation errors from backend---->
 function displayValidationErrors(errors) {
   clearFormErrors();
-
   if (errors && typeof errors === "object") {
+    const fieldMapping = {
+      StartDate: "start-date",
+      EndDate: "end-date",
+      User: "user-filter",
+      Action: "action-filter",
+      Module: "module-filter",
+      Severity: "severity-filter",
+    };
     Object.keys(errors).forEach((field) => {
       const errorMessages = errors[field];
-
       if (Array.isArray(errorMessages) && errorMessages.length > 0) {
-        // Map backend field names to form field IDs
-        const fieldMapping = {
-          StartDate: "start-date",
-          EndDate: "end-date",
-          User: "user-filter",
-          Action: "action-filter",
-          Module: "module-filter",
-          Severity: "severity-filter",
-        };
-
         const formFieldId = fieldMapping[field] || field.toLowerCase();
         const errorElement = document.getElementById(`${formFieldId}-error`);
-        if (errorElement) {
-          errorElement.textContent = errorMessages[0]; // Show first error message
-        }
+        if (errorElement) errorElement.textContent = errorMessages[0];
       }
     });
   }
 }
-//---------------------------End----------------------------->
 
-// ===============================
-// Initialize page (runs automatically)
-// ===============================
-(async function init() {
-  // Initialize DataTable
-  auditTable = $("#audit-table").DataTable({
+async function initializeAuditTable() {
+  console.log("[AUDIT] Starting audit table initialization...");
+
+  // Log current state
+  console.log("[AUDIT] jQuery available:", typeof $ !== "undefined");
+  console.log(
+    "[AUDIT] jQuery.fn available:",
+    typeof $ !== "undefined" && typeof $.fn !== "undefined",
+  );
+  console.log(
+    "[AUDIT] DataTable available:",
+    typeof $ !== "undefined" && typeof $.fn.DataTable !== "undefined",
+  );
+
+  // Check if jQuery and DataTables are loaded
+  if (typeof $ === "undefined") {
+    console.error("[AUDIT] jQuery is NOT loaded!");
+    setTimeout(initializeAuditTable, 100);
+    return;
+  }
+  if (typeof $.fn === "undefined") {
+    console.error("[AUDIT] jQuery.fn is NOT available!");
+    setTimeout(initializeAuditTable, 100);
+    return;
+  }
+  if (typeof $.fn.DataTable === "undefined") {
+    console.error("[AUDIT] DataTable is NOT loaded!");
+    setTimeout(initializeAuditTable, 100);
+    return;
+  }
+
+  console.log("[AUDIT] jQuery and DataTables loaded successfully");
+
+  // Check if the table element exists
+  const tableElement = $("#audit-table");
+  console.log("[AUDIT] Table element found:", tableElement.length > 0);
+
+  if (tableElement.length === 0) {
+    console.error(
+      "[AUDIT] Audit table element not found! Retrying in 100ms...",
+    );
+    setTimeout(initializeAuditTable, 100);
+    return;
+  }
+
+  console.log("[AUDIT] Initializing DataTable...");
+
+  // Check authentication
+  const token = localStorage.getItem("accessToken");
+  console.log("[AUDIT] Access token available:", !!token);
+
+  if (!apiClient.isAuthenticated()) {
+    console.log("[AUDIT] Not authenticated, redirecting to login...");
+    window.location.href = "login.html";
+    return;
+  }
+
+  console.log("[AUDIT] Making API call to:", API_BASE + "/audit/logs");
+
+  auditTable = tableElement.DataTable({
     ajax: {
       url: API_BASE + "/audit/logs",
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("accessToken"),
+        Authorization: "Bearer " + token,
       },
       data: function (d) {
-        // Add custom filters to the request only if they have values
+        console.log("[AUDIT] DataTables sending data:", d);
         if (currentFilters.startDate) d.startDate = currentFilters.startDate;
         if (currentFilters.endDate) d.endDate = currentFilters.endDate;
         if (currentFilters.user) d.user = currentFilters.user;
         if (currentFilters.action) d.action = currentFilters.action;
         if (currentFilters.module) d.module = currentFilters.module;
         if (currentFilters.severity) d.severity = currentFilters.severity;
-        d.page = Math.floor(d.start / d.length) + 1 || 1; // Ensure it's at least 1
-        d.pageSize = d.length || 25; // Default page size
+        d.page = Math.floor(d.start / d.length) + 1 || 1;
+        d.pageSize = d.length || 25;
       },
       dataSrc: function (json) {
-        // Update statistics
-        if (json) {
-          updateStatistics(json);
-        }
-        return json?.data || [];
+        console.log(
+          "[AUDIT] DataTables received response:",
+          JSON.stringify(json, null, 2),
+        );
+        if (json) updateStatistics(json);
+        const data = json?.data || [];
+        console.log("[AUDIT] Data extracted:", data.length, "rows");
+        console.log("[AUDIT] First row:", data[0]);
+
+        // Check if table rows are being created
+        setTimeout(() => {
+          const rowCount = $("#audit-table tbody tr").length;
+          console.log("[AUDIT] Table rows in DOM:", rowCount);
+          const tableContainer = $(".data-table-container");
+          console.log(
+            "[AUDIT] Table container visible:",
+            tableContainer.length > 0,
+          );
+          if (tableContainer.length > 0) {
+            console.log(
+              "[AUDIT] Table container HTML:",
+              tableContainer.html().substring(0, 500),
+            );
+          }
+        }, 1000);
+
+        return data;
       },
       error: function (xhr, error, thrown) {
-        console.error("DataTable error:", error);
-        showToast("Failed to load audit logs", "error");
+        console.error("[AUDIT] DataTable AJAX error:", {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          responseText: xhr.responseText,
+          error: error,
+          thrown: thrown,
+        });
+        showToast("Failed to load audit logs: " + error, "error");
+      },
+      complete: function (xhr, status) {
+        console.log(
+          "[AUDIT] DataTable AJAX complete. Status:",
+          status,
+          "Response:",
+          xhr.responseText,
+        );
       },
     },
-
-    /* ===============================
-         DEFAULT DATATABLE FEATURES
-     =============================== */
-    paging: true, // Pagination
-    searching: true, // Global search
-    ordering: true, // Column sorting
-    info: true, // Info text
-    processing: true, // Processing indicator
-    responsive: true, // Responsive table
-
-    pageLength: 25, // Default rows per page
+    paging: true,
+    searching: true,
+    ordering: true,
+    info: true,
+    processing: true,
+    responsive: true,
+    pageLength: 25,
     lengthMenu: [10, 25, 50, 100],
-
-    order: [[0, "desc"]], // Default sort by timestamp DESC
-
-    // Custom DOM layout for better space utilization
+    order: [[0, "desc"]],
     dom: '<"table-controls-wrapper"<"table-info"i><"table-search"f>>rt<"table-footer"<"table-length"l><"table-pagination"p>>',
-
     language: {
       search: "",
       searchPlaceholder: "Search audit logs...",
@@ -149,113 +189,91 @@ function displayValidationErrors(errors) {
       emptyTable: "No audit logs found",
       processing: "Loading audit logs...",
     },
-
     columns: [
       {
         data: "timestamp",
-        render: function (data, type, row) {
-          if (type === "display") {
-            return new Date(data).toLocaleString();
-          }
-          return data;
-        },
+        render: (data, type, row) =>
+          type === "display" ? new Date(data).toLocaleString() : data,
       },
       { data: "user" },
       {
         data: "action",
-        render: function (data, type, row) {
-          if (type === "display") {
-            const badgeClass = `action-badge ${data}`;
-            return `<span class="${badgeClass}">${data.charAt(0).toUpperCase() + data.slice(1)}</span>`;
-          }
-          return data;
-        },
+        render: (data, type, row) =>
+          type === "display"
+            ? `<span class="action-badge ${data}">${data.charAt(0).toUpperCase() + data.slice(1)}</span>`
+            : data,
       },
       {
         data: "module",
-        render: function (data, type, row) {
-          if (type === "display") {
-            return (
-              data.charAt(0).toUpperCase() + data.slice(1).replace("-", " ")
-            );
-          }
-          return data;
-        },
+        render: (data, type, row) =>
+          type === "display"
+            ? data.charAt(0).toUpperCase() + data.slice(1).replace("-", " ")
+            : data,
       },
       { data: "entity" },
       { data: "details" },
       { data: "ipAddress" },
       {
         data: "severity",
-        render: function (data, type, row) {
-          if (type === "display") {
-            return `<span class="severity-badge severity-${data}">${data}</span>`;
-          }
-          return data;
-        },
+        render: (data, type, row) =>
+          type === "display"
+            ? `<span class="severity-badge severity-${data}">${data}</span>`
+            : data,
       },
       {
         data: null,
         orderable: false,
         searchable: false,
         className: "actions-column",
-        render: function (data, type, row) {
-          return `<button class="action-btn-icon view-btn" title="View Details" data-id="${row.id}"><span class="material-icons-outlined">visibility</span></button>`;
-        },
+        render: (data, type, row) =>
+          `<button class="action-btn-icon view-btn" title="View Details" data-id="${row.id}"><span class="material-icons-outlined">visibility</span></button>`,
       },
     ],
   });
 
-  // Get references to UI elements
+  console.log("Audit table initialized successfully");
+
+  // Set up event listeners
   const exportBtn = document.getElementById("export-audit-btn");
   const applyFiltersBtn = document.getElementById("apply-filters");
   const clearFiltersBtn = document.getElementById("clear-filters");
-
-  // Event listeners
-  if (exportBtn) {
-    exportBtn.addEventListener("click", exportAuditLogs);
-  }
-
-  if (applyFiltersBtn) {
-    applyFiltersBtn.addEventListener("click", applyFilters);
-  }
-
-  if (clearFiltersBtn) {
-    clearFiltersBtn.addEventListener("click", clearFilters);
-  }
-
-  // View audit details modal
+  if (exportBtn) exportBtn.addEventListener("click", exportAuditLogs);
+  if (applyFiltersBtn) applyFiltersBtn.addEventListener("click", applyFilters);
+  if (clearFiltersBtn) clearFiltersBtn.addEventListener("click", clearFilters);
   $("#audit-table").on("click", ".view-btn", function () {
-    const auditId = $(this).data("id");
-    viewAuditDetails(auditId);
+    viewAuditDetails($(this).data("id"));
   });
 
-  // Modal close handlers
+  // Set up modal event listeners
   const auditModal = document.getElementById("audit-details-modal");
   const closeAuditModal = document.getElementById("close-audit-modal");
-
-  if (closeAuditModal && auditModal) {
-    closeAuditModal.addEventListener("click", function (event) {
-      event.preventDefault();
+  if (closeAuditModal && auditModal)
+    closeAuditModal.addEventListener("click", (e) => {
+      e.preventDefault();
       auditModal.classList.remove("show");
     });
-  }
-
-  if (auditModal) {
-    window.addEventListener("click", function (event) {
-      if (event.target === auditModal) {
-        auditModal.classList.remove("show");
-      }
+  if (auditModal)
+    window.addEventListener("click", (e) => {
+      if (e.target === auditModal) auditModal.classList.remove("show");
     });
-  }
 
-  // Load initial statistics
+  // Load statistics
   loadAuditStatistics();
-})();
 
-// ===============================
-// Load audit statistics
-// ===============================
+  // Auto-refresh every 10 seconds
+  setInterval(() => {
+    console.log("[AUDIT] Auto-refreshing audit table...");
+    if (auditTable) {
+      auditTable.ajax.reload(null, false); // false = don't reset pagination
+    }
+    loadAuditStatistics();
+  }, 10000);
+
+  console.log(
+    "[AUDIT] Audit table initialized with auto-refresh (every 10 seconds)",
+  );
+}
+
 async function loadAuditStatistics() {
   try {
     const response = await fetch(`${API_BASE}/audit/statistics`, {
@@ -263,25 +281,17 @@ async function loadAuditStatistics() {
         Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
     });
-
     if (response.ok) {
       const stats = await response.json();
       updateStatistics(stats);
-    } else {
-      console.error("Failed to load audit statistics");
     }
   } catch (error) {
     console.error("Error loading audit statistics:", error);
   }
 }
 
-// ===============================
-// Update statistics display
-// ===============================
 function updateStatistics(data) {
   if (!data) return;
-
-  // Update cards
   document.getElementById("total-audits").textContent = data.totalLogs || 0;
   document.getElementById("today-activities").textContent =
     data.todayActivities || 0;
@@ -290,35 +300,25 @@ function updateStatistics(data) {
     (data.errors || 0) + (data.criticalEvents || 0);
 }
 
-// ===============================
-// Apply filters
-// ===============================
 function applyFilters() {
-  // Get filter values
-  currentFilters.startDate = document.getElementById("start-date").value;
-  currentFilters.endDate = document.getElementById("end-date").value;
-  currentFilters.user = document.getElementById("user-filter").value.trim();
-  currentFilters.action = document.getElementById("action-filter").value;
-  currentFilters.module = document.getElementById("module-filter").value;
-  currentFilters.severity = document.getElementById("severity-filter").value;
-
-  // Reload DataTable with filters
+  currentFilters = {
+    startDate: document.getElementById("start-date").value,
+    endDate: document.getElementById("end-date").value,
+    user: document.getElementById("user-filter").value.trim(),
+    action: document.getElementById("action-filter").value,
+    module: document.getElementById("module-filter").value,
+    severity: document.getElementById("severity-filter").value,
+  };
   auditTable.ajax.reload();
 }
 
-// ===============================
-// Clear filters
-// ===============================
 function clearFilters() {
-  // Reset form fields
   document.getElementById("start-date").value = "";
   document.getElementById("end-date").value = "";
   document.getElementById("user-filter").value = "";
   document.getElementById("action-filter").value = "";
   document.getElementById("module-filter").value = "";
   document.getElementById("severity-filter").value = "";
-
-  // Reset filter object
   currentFilters = {
     startDate: "",
     endDate: "",
@@ -327,14 +327,9 @@ function clearFilters() {
     module: "",
     severity: "",
   };
-
-  // Reload DataTable
   auditTable.ajax.reload();
 }
 
-// ===============================
-// View audit details
-// ===============================
 async function viewAuditDetails(auditId) {
   try {
     const response = await fetch(`${API_BASE}/audit/logs/${auditId}`, {
@@ -342,56 +337,19 @@ async function viewAuditDetails(auditId) {
         Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
     });
-
     if (response.ok) {
       const audit = await response.json();
-
-      // Populate modal with audit data
-      const detailsContent = document.getElementById("audit-details-content");
-      detailsContent.innerHTML = `
-        <div class="detail-row">
-          <label>ID</label>
-          <span>${audit.id}</span>
-        </div>
-        <div class="detail-row">
-          <label>Timestamp</label>
-          <span>${new Date(audit.timestamp).toLocaleString()}</span>
-        </div>
-        <div class="detail-row">
-          <label>User</label>
-          <span>${audit.user}</span>
-        </div>
-        <div class="detail-row">
-          <label>Action</label>
-          <span><span class="action-badge ${audit.action}">${audit.action.charAt(0).toUpperCase() + audit.action.slice(1)}</span></span>
-        </div>
-        <div class="detail-row">
-          <label>Module</label>
-          <span>${audit.module.charAt(0).toUpperCase() + audit.module.slice(1).replace("-", " ")}</span>
-        </div>
-        <div class="detail-row">
-          <label>Entity</label>
-          <span>${audit.entity || "N/A"}</span>
-        </div>
-        <div class="detail-row">
-          <label>Details</label>
-          <span>${audit.details || "N/A"}</span>
-        </div>
-        <div class="detail-row">
-          <label>IP Address</label>
-          <span>${audit.ipAddress || "N/A"}</span>
-        </div>
-        <div class="detail-row">
-          <label>Severity</label>
-          <span><span class="severity-badge severity-${audit.severity}">${audit.severity}</span></span>
-        </div>
-        <div class="detail-row">
-          <label>Created At</label>
-          <span>${new Date(audit.createdAt || audit.timestamp).toLocaleString()}</span>
-        </div>
-      `;
-
-      // Show modal
+      document.getElementById("audit-details-content").innerHTML = `
+        <div class="detail-row"><label>ID</label><span>${audit.id}</span></div>
+        <div class="detail-row"><label>Timestamp</label><span>${new Date(audit.timestamp).toLocaleString()}</span></div>
+        <div class="detail-row"><label>User</label><span>${audit.user}</span></div>
+        <div class="detail-row"><label>Action</label><span><span class="action-badge ${audit.action}">${audit.action.charAt(0).toUpperCase() + audit.action.slice(1)}</span></span></div>
+        <div class="detail-row"><label>Module</label><span>${audit.module.charAt(0).toUpperCase() + audit.module.slice(1).replace("-", " ")}</span></div>
+        <div class="detail-row"><label>Entity</label><span>${audit.entity || "N/A"}</span></div>
+        <div class="detail-row"><label>Details</label><span>${audit.details || "N/A"}</span></div>
+        <div class="detail-row"><label>IP Address</label><span>${audit.ipAddress || "N/A"}</span></div>
+        <div class="detail-row"><label>Severity</label><span><span class="severity-badge severity-${audit.severity}">${audit.severity}</span></span></div>
+        <div class="detail-row"><label>Created At</label><span>${new Date(audit.createdAt || audit.timestamp).toLocaleString()}</span></div>`;
       document.getElementById("audit-details-modal").classList.add("show");
     } else {
       showToast("Failed to load audit details", "error");
@@ -402,19 +360,14 @@ async function viewAuditDetails(auditId) {
   }
 }
 
-// ===============================
-// Export audit logs
-// ===============================
 async function exportAuditLogs() {
   try {
-    // Build query parameters for export
     const params = new URLSearchParams({
       page: 1,
-      pageSize: 10000, // Large number to get all filtered results
+      pageSize: 10000,
       sortBy: "Timestamp",
       sortDirection: "desc",
     });
-
     if (currentFilters.startDate)
       params.append("startDate", currentFilters.startDate);
     if (currentFilters.endDate)
@@ -424,23 +377,18 @@ async function exportAuditLogs() {
     if (currentFilters.module) params.append("module", currentFilters.module);
     if (currentFilters.severity)
       params.append("severity", currentFilters.severity);
-
     const response = await fetch(`${API_BASE}/audit/logs?${params}`, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("accessToken"),
       },
     });
-
     if (response.ok) {
       const data = await response.json();
       const logs = data.data || [];
-
       if (logs.length === 0) {
         showToast("No audit logs to export", "info");
         return;
       }
-
-      // Convert to CSV
       const headers = [
         "Timestamp",
         "User",
@@ -466,12 +414,9 @@ async function exportAuditLogs() {
           ].join(","),
         ),
       ].join("\n");
-
-      // Download CSV
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
+      link.setAttribute("href", URL.createObjectURL(blob));
       link.setAttribute(
         "download",
         `audit-logs-${new Date().toISOString().split("T")[0]}.csv`,
@@ -480,7 +425,6 @@ async function exportAuditLogs() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
       showToast("Audit logs exported successfully", "success");
     } else {
       showToast("Failed to export audit logs", "error");
@@ -490,3 +434,8 @@ async function exportAuditLogs() {
     showToast("An error occurred while exporting audit logs", "error");
   }
 }
+
+// Initialize when DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+  initializeAuditTable();
+});

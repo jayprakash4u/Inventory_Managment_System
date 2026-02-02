@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Debug - User Profile Button</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .debug-box {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+      }
+      .debug-title {
+        font-weight: bold;
+        color: #246dec;
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+      .debug-item {
+        padding: 8px;
+        background: #f9f9f9;
+        border-left: 3px solid #246dec;
+        margin: 8px 0;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .status-ok {
+        background-color: #d4edda;
+        border-left-color: #28a745;
+      }
+      .status-error {
+        background-color: #f8d7da;
+        border-left-color: #dc3545;
+      }
+      .status-warning {
+        background-color: #fff3cd;
+        border-left-color: #ffc107;
+      }
+      button {
+        padding: 10px 20px;
+        background: #246dec;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #1e53d4;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>User Profile Button Debug</h1>
+
+    <div class="debug-box">
+      <div class="debug-title">System Check</div>
+      <div id="system-check"></div>
+    </div>
+
+    <div class="debug-box">
+      <div class="debug-title">DOM Elements</div>
+      <div id="dom-elements"></div>
+    </div>
+
+    <div class="debug-box">
+      <div class="debug-title">Script Status</div>
+      <div id="script-status"></div>
+    </div>
+
+    <div class="debug-box">
+      <div class="debug-title">Event Listeners</div>
+      <div id="event-listeners"></div>
+    </div>
+
+    <div class="debug-box">
+      <div class="debug-title">API Check</div>
+      <div id="api-check"></div>
+    </div>
+
+    <div class="debug-box">
+      <div class="debug-title">Actions</div>
+      <button onclick="testProfileClick()">Test Profile Click</button>
+      <button onclick="testOpenModal()">Test Open Modal</button>
+      <button onclick="testUserData()">Test User Data</button>
+      <button onclick="reloadProfile()">Reload Profile System</button>
+      <button onclick="showConsoleLog()">Show Console Log</button>
+    </div>
+
+    <div class="debug-box">
+      <div class="debug-title">Console Output</div>
+      <div
+        id="console-output"
+        style="
+          background: #000;
+          color: #0f0;
+          padding: 15px;
+          border-radius: 4px;
+          font-family: monospace;
+          max-height: 300px;
+          overflow-y: auto;
+        "
+      ></div>
+    </div>
+
+    <script>
+      // Capture console logs
+      let consoleLogs = [];
+      const originalLog = console.log;
+      const originalError = console.error;
+      const originalWarn = console.warn;
+
+      console.log = function (...args) {
+        consoleLogs.push({ type: "log", msg: args.join(" ") });
+        originalLog.apply(console, args);
+      };
+
+      console.error = function (...args) {
+        consoleLogs.push({ type: "error", msg: args.join(" ") });
+        originalError.apply(console, args);
+      };
+
+      console.warn = function (...args) {
+        consoleLogs.push({ type: "warn", msg: args.join(" ") });
+        originalWarn.apply(console, args);
+      };
+
+      function showConsoleLog() {
+        const output = document.getElementById("console-output");
+        output.innerHTML = consoleLogs
+          .map(
+            (log) =>
+              `<div style="color: ${log.type === "error" ? "#f00" : log.type === "warn" ? "#ff0" : "#0f0"}">[${log.type.toUpperCase()}] ${log.msg}</div>`,
+          )
+          .join("");
+      }
+
+      function runDiagnostics() {
+        // System Check
+        const systemCheck = document.getElementById("system-check");
+        let html = "";
+
+        // Check jQuery
+        const hasJQuery = typeof $ !== "undefined";
+        html += `<div class="debug-item ${hasJQuery ? "status-ok" : "status-error"}">jQuery: ${hasJQuery ? "✓ Loaded" : "✗ Not loaded"}</div>`;
+
+        // Check API Client
+        const hasAPIClient = typeof apiClient !== "undefined";
+        html += `<div class="debug-item ${hasAPIClient ? "status-ok" : "status-error"}">API Client: ${hasAPIClient ? "✓ Loaded" : "✗ Not loaded"}</div>`;
+
+        // Check Functions
+        const hasShowProfile = typeof showProfile !== "undefined";
+        html += `<div class="debug-item ${hasShowProfile ? "status-ok" : "status-error"}">showProfile(): ${hasShowProfile ? "✓ Available" : "✗ Not available"}</div>`;
+
+        const hasOpenModal = typeof openModal !== "undefined";
+        html += `<div class="debug-item ${hasOpenModal ? "status-ok" : "status-error"}">openModal(): ${hasOpenModal ? "✓ Available" : "✗ Not available"}</div>`;
+
+        const hasInitialize =
+          typeof initializeUserProfileComponent !== "undefined";
+        html += `<div class="debug-item ${hasInitialize ? "status-ok" : "status-error"}">initializeUserProfileComponent(): ${hasInitialize ? "✓ Available" : "✗ Not available"}</div>`;
+
+        systemCheck.innerHTML = html;
+
+        // DOM Elements Check
+        const domCheck = document.getElementById("dom-elements");
+        html = "";
+
+        const profileBtn = document.querySelector(".user-profile");
+        html += `<div class="debug-item ${profileBtn ? "status-ok" : "status-error"}">User Profile Button: ${profileBtn ? "✓ Found" : "✗ Not found"}</div>`;
+
+        const profileMenu = document.querySelector(".user-menu");
+        html += `<div class="debug-item ${profileMenu ? "status-ok" : "status-warning"}">User Menu: ${profileMenu ? "✓ Found" : "✗ Not found (might be loaded later)"}</div>`;
+
+        const profilePic = document.getElementById("profilePic");
+        html += `<div class="debug-item ${profilePic ? "status-ok" : "status-error"}">Profile Pic Element: ${profilePic ? "✓ Found" : "✗ Not found"}</div>`;
+
+        const modalContainer = document.getElementById(
+          "profileModalsContainer",
+        );
+        html += `<div class="debug-item ${modalContainer ? "status-ok" : "status-warning"}">Modal Container: ${modalContainer ? "✓ Found" : "✗ Not found"}</div>`;
+
+        const viewModal = document.getElementById("viewProfileModal");
+        html += `<div class="debug-item ${viewModal ? "status-ok" : "status-warning"}">View Profile Modal: ${viewModal ? "✓ Found" : "✗ Not loaded yet"}</div>`;
+
+        domCheck.innerHTML = html;
+
+        // Script Status
+        const scriptCheck = document.getElementById("script-status");
+        html = "";
+
+        const scripts = document.querySelectorAll("script[src]");
+        html += `<div class="debug-item status-ok">Total scripts loaded: ${scripts.length}</div>`;
+
+        scripts.forEach((script) => {
+          const src = script.src.split("/").pop();
+          html += `<div class="debug-item">- ${src}</div>`;
+        });
+
+        scriptCheck.innerHTML = html;
+
+        // Event Listeners Check
+        const eventCheck = document.getElementById("event-listeners");
+        html = "";
+
+        const btn = document.querySelector(".user-profile");
+        if (btn) {
+          const hasClickListener = btn._hasClickListener || false;
+          html += `<div class="debug-item ${hasClickListener ? "status-ok" : "status-warning"}">Profile Button Click Listener: ${hasClickListener ? "✓ Attached" : "✗ May not be attached (normal if using event delegation)"}</div>`;
+          html += `<div class="debug-item">Button Classes: ${btn.className}</div>`;
+          html += `<div class="debug-item">Button Computed Style Display: ${window.getComputedStyle(btn).display}</div>`;
+          html += `<div class="debug-item">Button Computed Style Cursor: ${window.getComputedStyle(btn).cursor}</div>`;
+        } else {
+          html += `<div class="debug-item status-error">Profile button not found in DOM</div>`;
+        }
+
+        eventCheck.innerHTML = html;
+
+        // API Check
+        const apiCheck = document.getElementById("api-check");
+        html = "";
+
+        if (typeof apiClient !== "undefined") {
+          const user = apiClient.getStoredUser();
+          html += `<div class="debug-item ${user ? "status-ok" : "status-warning"}">Stored User: ${user ? "✓ Found (" + (user.username || user.email) + ")" : "✗ Not found"}</div>`;
+        } else {
+          html += `<div class="debug-item status-error">API Client not loaded</div>`;
+        }
+
+        apiCheck.innerHTML = html;
+      }
+
+      function testProfileClick() {
+        console.log("Testing profile click...");
+        const btn = document.querySelector(".user-profile");
+        if (btn) {
+          console.log("Profile button found, simulating click...");
+          btn.click();
+          console.log("Profile button clicked");
+        } else {
+          console.error("Profile button not found");
+        }
+      }
+
+      function testOpenModal() {
+        console.log("Testing openModal function...");
+        if (typeof openModal !== "undefined") {
+          console.log("openModal function available, opening test modal...");
+          // Try to open a dummy modal
+          const testModal = document.createElement("div");
+          testModal.id = "testModal";
+          testModal.className = "modal";
+          testModal.innerHTML =
+            '<div class="modal-content"><p>Test Modal</p></div>';
+          document.body.appendChild(testModal);
+          openModal("testModal");
+          console.log("Test modal opened");
+          setTimeout(() => {
+            testModal.remove();
+          }, 2000);
+        } else {
+          console.error("openModal function not available");
+        }
+      }
+
+      function testUserData() {
+        console.log("Testing user data...");
+        if (typeof apiClient !== "undefined") {
+          const user = apiClient.getStoredUser();
+          console.log("User data:", user);
+          if (user) {
+            console.log("Username:", user.username);
+            console.log("Email:", user.email);
+            console.log("Full Name:", user.fullName);
+          } else {
+            console.warn("No user data found in storage");
+          }
+        } else {
+          console.error("API Client not available");
+        }
+      }
+
+      function reloadProfile() {
+        console.log("Reloading profile system...");
+        if (typeof initializeUserProfileComponent !== "undefined") {
+          initializeUserProfileComponent();
+          console.log("Profile component reinitialized");
+        }
+        if (typeof closeAllModals !== "undefined") {
+          closeAllModals();
+          console.log("All modals closed");
+        }
+        runDiagnostics();
+      }
+
+      // Run diagnostics on load
+      document.addEventListener("DOMContentLoaded", runDiagnostics);
+      window.addEventListener("load", runDiagnostics);
+
+      // Run initial diagnostics
+      setTimeout(runDiagnostics, 1000);
+    </script>
+  </body>
+</html>

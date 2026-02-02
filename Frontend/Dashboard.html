@@ -4,20 +4,79 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Inventory Overview</title>
-    <!-- Monstererrat font -->
+    <!-- Resource Hints for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
 
+    <!-- Optimized Font Loading with display: swap -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap&family=Material+Icons+Outlined&display=swap&display=swap"
       rel="stylesheet"
     />
-    <!---Material Icon-->
 
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
-      rel="stylesheet"
-    />
+    <!-- Critical CSS Inline (most used styles) -->
+    <style>
+      :root {
+        --primary-color: #246dec;
+        --success-color: #367952;
+        --info-color: #4f35a1;
+        --warning-color: #f5b747;
+        --danger-color: #cc3c43;
+      }
+      .grid-container {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+          "header header"
+          "sidebar main";
+        min-height: 100vh;
+      }
+      .header {
+        grid-area: header;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      #sidebar {
+        grid-area: sidebar;
+        background: #1a1f36;
+        color: #fff;
+        padding: 1rem;
+      }
+      .main-container {
+        grid-area: main;
+        padding: 1.5rem;
+        background: #f8fafc;
+        overflow-y: auto;
+      }
+      /* Loading skeleton for faster perceived performance */
+      .skeleton {
+        background: linear-gradient(
+          90deg,
+          #f0f0f0 25%,
+          #e0e0e0 50%,
+          #f0f0f0 75%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+    </style>
 
-    <!-- Custom CSS    -->
+    <!-- Custom CSS (deferred) -->
     <link rel="stylesheet" href="Css/style.css" />
     <link rel="stylesheet" href="Css/dashboard-redesign.css" />
     <link rel="stylesheet" href="Css/user-profile.css" />
@@ -65,28 +124,77 @@
                 </div>
               </div>
               <div class="menu-divider"></div>
-              <a href="#" role="menuitem" onclick="showProfile()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  showProfile();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">person</span>
                 View Profile
               </a>
-              <a href="#" role="menuitem" onclick="editProfilePicture()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  editProfilePicture();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">photo_camera</span>
                 Change Picture
               </a>
-              <a href="#" role="menuitem" onclick="changePassword()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  changePassword();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">lock</span>
                 Change Password
               </a>
-              <a href="#" role="menuitem" onclick="accountSettings()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  accountSettings();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">settings</span>
                 Account Settings
               </a>
-              <a href="#" role="menuitem" onclick="helpSupport()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  helpSupport();
+                  return false;
+                "
+              >
                 <span class="material-icons-outlined">help</span>
                 Help & Support
               </a>
               <div class="menu-divider"></div>
-              <a href="#" role="menuitem" onclick="logout()">
+              <a
+                href="#"
+                role="menuitem"
+                onclick="
+                  event.preventDefault();
+                  logout();
+                  return false;
+                "
+              >
+                > >
                 <span class="material-icons-outlined">logout</span>
                 Logout
               </a>
@@ -534,48 +642,81 @@
     </div>
     <!-- Profile Modals Container (load first) -->
     <div id="profileModalsContainer"></div>
-    
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/5.3.5/apexcharts.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/all.min.js"></script>
-    <script src="js/api-client.js"></script>
-    <script src="js/profile-management.js"></script>
-    <script src="js/user-profile-component.js"></script>
-    
-    <script>
-      // Load profile modals after scripts are ready
-      function loadProfileModals() {
-        console.log('Loading profile modals...');
-        fetch('profile-modals.html')
-          .then(response => response.text())
-          .then(html => {
-            document.getElementById('profileModalsContainer').innerHTML = html;
-            console.log('Profile modals loaded successfully');
-            // Initialize modal event listeners
-            initializeModalListeners();
-          })
-          .catch(error => console.error('Error loading profile modals:', error));
-      }
 
-      // Initialize modal close button listeners
-      function initializeModalListeners() {
-        document.querySelectorAll('.close, [data-modal]').forEach(btn => {
-          if (btn.classList.contains('close') || (btn.tagName === 'BUTTON' && btn.getAttribute('data-modal'))) {
-            btn.addEventListener('click', function() {
-              const modalId = this.getAttribute('data-modal') || this.closest('.modal')?.id;
-              if (modalId) {
-                closeModal(modalId);
-              }
+    <!-- Scripts - Optimized loading order -->
+    <!-- Defer non-critical scripts to not block rendering -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/5.3.5/apexcharts.min.js"
+      defer
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/all.min.js"
+      defer
+    ></script>
+    <script src="js/api-client.js" defer></script>
+    <script src="js/profile-management.js" defer></script>
+    <script src="js/user-profile-component.js" defer></script>
+    <script src="js/global-profile-init.js" defer></script>
+
+    <script>
+      // Optimized profile modals loading with lazy loading
+      const loadProfileModals = (() => {
+        let loaded = false;
+        return async () => {
+          if (loaded) return;
+          loaded = true;
+          console.log("Loading profile modals...");
+          try {
+            const response = await fetch("profile-modals.html", {
+              cache: "force-cache", // Cache for faster reload
             });
+            const html = await response.text();
+            document.getElementById("profileModalsContainer").innerHTML = html;
+            console.log("Profile modals loaded successfully");
+            initializeModalListeners();
+          } catch (error) {
+            console.error("Error loading profile modals:", error);
           }
-        });
-      }
+        };
+      })();
+
+      // Optimized modal listeners initialization
+      const initializeModalListeners = (() => {
+        let initialized = false;
+        return () => {
+          if (initialized) return;
+          initialized = true;
+          document.querySelectorAll(".close, [data-modal]").forEach((btn) => {
+            if (
+              btn.classList.contains("close") ||
+              (btn.tagName === "BUTTON" && btn.getAttribute("data-modal"))
+            ) {
+              btn.addEventListener("click", function () {
+                const modalId =
+                  this.getAttribute("data-modal") || this.closest(".modal")?.id;
+                if (modalId) {
+                  closeModal(modalId);
+                }
+              });
+            }
+          });
+        };
+      })();
 
       // Load modals when DOM is ready
-      document.addEventListener('DOMContentLoaded', loadProfileModals);
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () =>
+          setTimeout(loadProfileModals, 100),
+        );
+      } else {
+        setTimeout(loadProfileModals, 100);
+      }
     </script>
-    
-    <script src="js/dashboard.js"></script>
+
+    <!-- Defer remaining scripts -->
+    <script src="js/dashboard.js" defer></script>
+    <script src="js/form-validator.js" defer></script>
+    <script src="js/toast-notification.js" defer></script>
   </body>
 </html>

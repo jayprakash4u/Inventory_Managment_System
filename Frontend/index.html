@@ -2,31 +2,42 @@
 <html>
   <head>
     <title>Product CRUD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://code.jquery.com" />
     <style>
+      :root {
+        --primary-color: #4caf50;
+        --primary-hover: #45a049;
+        --bg-color: #f9f9f9;
+        --border-color: #ccc;
+        --text-color: #333;
+        --header-bg: #f2f2f2;
+      }
       body {
         font-family: Arial, sans-serif;
         margin: 20px;
-        background-color: #f9f9f9;
+        background-color: var(--bg-color);
       }
       h2 {
         text-align: center;
-        color: #333;
+        color: var(--text-color);
       }
       input,
       button {
         margin: 5px;
         padding: 8px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color);
         border-radius: 4px;
       }
       button {
-        background-color: #4caf50;
+        background-color: var(--primary-color);
         color: white;
         border: none;
         cursor: pointer;
+        transition: background-color 0.2s;
       }
       button:hover {
-        background-color: #45a049;
+        background-color: var(--primary-hover);
       }
       #productTable {
         width: 100%;
@@ -39,7 +50,7 @@
         text-align: left;
       }
       #productTable th {
-        background-color: #f2f2f2;
+        background-color: var(--header-bg);
       }
     </style>
   </head>
@@ -58,11 +69,25 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody id="tbody"></tbody>
+      <tbody id="tbody">
+        <!-- Loading skeleton -->
+        <tr class="skeleton-row">
+          <td colspan="4">
+            <div class="skeleton"></div>
+          </td>
+        </tr>
+      </tbody>
     </table>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="js/api-client.js"></script>
-    <script src="js/script.js"></script>
+    <style>
+      .skeleton-row td {
+        padding: 0 !important;
+      }
+    </style>
+
+    <!-- Optimized script loading with defer -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
+    <script src="js/api-client.js" defer></script>
+    <script src="js/script.js" defer></script>
   </body>
 </html>

@@ -212,6 +212,18 @@
   text-decoration: none;
   color: inherit;
   transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.action-card:hover {
+  background: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-color: #246dec;
+}
+
+.alerts-card {
+  cursor: pointer;
 }
 
 .action-card:hover {
