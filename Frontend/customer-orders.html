@@ -16,6 +16,7 @@
     />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="Css/style.css" />
+    <link rel="stylesheet" href="Css/responsive.css" />
     <link rel="stylesheet" href="Css/user-profile.css" />
     <link rel="stylesheet" href="Css/table.css" />
     <link
@@ -24,11 +25,13 @@
     />
   </head>
   <body>
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="grid-container">
       <!-- Header -->
       <header class="header">
         <div class="header-left">
-          <div class="menu-icon">
+          <div class="menu-icon" id="menuIcon">
             <span class="material-icons-outlined">menu</span>
           </div>
           <div class="breadcrumb">
@@ -153,7 +156,9 @@
             <span class="material-icons-outlined">inventory</span>
             Inventory System
           </div>
-          <span class="material-icons-outlined sidebar-close">close</span>
+          <span class="material-icons-outlined sidebar-close" id="sidebarClose"
+            >close</span
+          >
         </div>
 
         <ul class="sidebar-list">
@@ -554,8 +559,49 @@
       document.addEventListener("DOMContentLoaded", loadProfileModals);
     </script>
 
+    <script>
+      // Mobile Menu Toggle Functionality
+      const menuIcon = document.getElementById("menuIcon");
+      const sidebar = document.getElementById("sidebar");
+      const sidebarClose = document.getElementById("sidebarClose");
+      const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+      function toggleSidebar() {
+        sidebar.classList.toggle("active");
+        sidebarOverlay.classList.toggle("active");
+        document.body.style.overflow = sidebar.classList.contains("active")
+          ? "hidden"
+          : "";
+      }
+
+      function closeSidebar() {
+        sidebar.classList.remove("active");
+        sidebarOverlay.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+
+      if (menuIcon) {
+        menuIcon.addEventListener("click", toggleSidebar);
+      }
+
+      if (sidebarClose) {
+        sidebarClose.addEventListener("click", closeSidebar);
+      }
+
+      if (sidebarOverlay) {
+        sidebarOverlay.addEventListener("click", closeSidebar);
+      }
+
+      // Close sidebar on window resize to desktop
+      window.addEventListener("resize", () => {
+        if (window.innerWidth > 1023) {
+          closeSidebar();
+        }
+      });
+    </script>
+
+    <script src="js/toast-notification.js"></script>
     <script src="js/customer-orders.js"></script>
     <script src="js/form-validator.js"></script>
-    <script src="js/toast-notification.js"></script>
   </body>
 </html>

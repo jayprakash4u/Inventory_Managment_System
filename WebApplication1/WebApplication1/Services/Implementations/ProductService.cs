@@ -1,3 +1,4 @@
+using WebApplication1.CrossCutting.Exceptions;
 using WebApplication1.Model;
 using WebApplication1.Repository;
 
@@ -24,7 +25,12 @@ public class ProductService : IProductService
 
     public async Task<Product?> GetProductByIdAsync(int id)
     {
-        return await _repository.GetProductByIdAsync(id);
+        var product = await _repository.GetProductByIdAsync(id);
+        if (product == null)
+        {
+            throw new NotFoundException("Product", id);
+        }
+        return product;
     }
 
     public async Task UpdateProductAsync(Product product)

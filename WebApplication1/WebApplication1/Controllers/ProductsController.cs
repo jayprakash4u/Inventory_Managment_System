@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.CrossCutting.Exceptions;
 using WebApplication1.DTOs;
 using WebApplication1.Model;
 using WebApplication1.Services;
@@ -38,7 +39,7 @@ namespace WebApplication1.Controllers
             if (product == null)
             {
                 _logger.LogWarning("Product not found with ID: {ProductId}", id);
-                return NotFound();
+                throw new NotFoundException("Product", id);
             }
             _logger.LogInformation("Product retrieved successfully: {ProductName}", product.Name);
             return Ok(product);
@@ -66,7 +67,10 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductRequest request)
         {
             var product = await _service.GetProductByIdAsync(id);
-            if (product == null) return NotFound();
+            if (product == null)
+            {
+                throw new NotFoundException("Product", id);
+            }
 
             if (request.Name != null) product.Name = request.Name;
             if (request.Sku != null) product.Sku = request.Sku;
@@ -83,7 +87,10 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var product = await _service.GetProductByIdAsync(id);
-            if (product == null) return NotFound();
+            if (product == null)
+            {
+                throw new NotFoundException("Product", id);
+            }
 
             await _service.DeleteProductAsync(id);
             return NoContent();

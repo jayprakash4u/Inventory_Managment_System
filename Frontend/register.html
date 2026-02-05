@@ -86,6 +86,43 @@
       .password-toggle:hover {
         color: #246dec;
       }
+      .error-alert {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-size: 14px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: shakeIn 0.5s ease;
+      }
+      .error-alert::before {
+        content: "⚠";
+        font-size: 18px;
+      }
+      @keyframes shakeIn {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        10%,
+        30%,
+        50%,
+        70%,
+        90% {
+          transform: translateX(-5px);
+        }
+        20%,
+        40%,
+        60%,
+        80% {
+          transform: translateX(5px);
+        }
+      }
     </style>
   </head>
   <body>
@@ -101,6 +138,8 @@
 
       <!-- Form -->
       <form id="register-form" class="form" data-validate>
+        <div id="register-error" class="error-alert input-hidden"></div>
+
         <label for="regFullName">
           Full Name
           <input
@@ -192,6 +231,12 @@
 
       function clearErrors() {
         $(".error-message").text("");
+        $("#register-error").hide();
+      }
+
+      function showRegisterError(message) {
+        const errorDiv = $("#register-error");
+        errorDiv.text(message).fadeIn();
       }
 
       async function register() {
@@ -238,6 +283,8 @@
             window.location.href = "login.html";
           }, 2000);
         } catch (error) {
+          console.error("Registration error:", error);
+          showRegisterError(error.message);
           ToastNotification.error("Registration failed: " + error.message);
         } finally {
           $("#registerBtn").prop("disabled", false).text("Create Account");

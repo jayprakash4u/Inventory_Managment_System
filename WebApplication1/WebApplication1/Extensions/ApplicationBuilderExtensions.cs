@@ -9,6 +9,7 @@ public static class ApplicationBuilderExtensions
     public static WebApplication ConfigureMiddleware(this WebApplication app)
     {
         app.UseCors("AllowSpecificOrigins");
+        app.UseCorrelationId();  // ← Add early to track all requests
         app.UseResponseCompression();
         app.UseSecurityHeaders();
         app.UseHsts();

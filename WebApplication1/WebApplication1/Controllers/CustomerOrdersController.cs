@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.CrossCutting.Exceptions;
 using WebApplication1.DTOs;
 using WebApplication1.Model;
 using WebApplication1.Services;
@@ -57,12 +58,6 @@ namespace WebApplication1.Controllers
             _logger.LogInformation("Retrieving customer order by ID: {OrderId}", id);
 
             var order = await _service.GetCustomerOrderByIdAsync(id);
-            if (order == null)
-            {
-                _logger.LogWarning("Customer order not found: {OrderId}", id);
-                return NotFound();
-            }
-
             _logger.LogInformation("Retrieved customer order: {OrderId}", id);
             return Ok(order);
         }
@@ -89,12 +84,6 @@ namespace WebApplication1.Controllers
             _logger.LogInformation("Updating customer order: {OrderId}", id);
 
             var order = await _service.GetCustomerOrderByIdAsync(id);
-            if (order == null)
-            {
-                _logger.LogWarning("Customer order not found for update: {OrderId}", id);
-                return NotFound();
-            }
-
             _mapper.Map(request, order);
             order.UpdatedAt = DateTime.UtcNow;
 
@@ -111,12 +100,7 @@ namespace WebApplication1.Controllers
         {
             _logger.LogInformation("Deleting customer order: {OrderId}", id);
 
-            var order = await _service.GetCustomerOrderByIdAsync(id);
-            if (order == null)
-            {
-                _logger.LogWarning("Customer order not found for deletion: {OrderId}", id);
-                return NotFound();
-            }
+            await _service.GetCustomerOrderByIdAsync(id); // Will throw if not found
 
             await _service.DeleteCustomerOrderAsync(id);
 

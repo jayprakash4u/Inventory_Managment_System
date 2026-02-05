@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApplication1.CrossCutting.Exceptions;
 using WebApplication1.Data;
 using WebApplication1.DTOs;
 
@@ -80,7 +81,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving alerts data");
-                return StatusCode(500, new { error = "Failed to retrieve alerts", message = ex.Message });
+                throw new BusinessException($"Error retrieving alerts data: {ex.Message}");
             }
         }
 
@@ -109,7 +110,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving alert count");
-                return Ok(new { lowStockCount = 15, outOfStockCount = 5, totalAlerts = 20 }); // Fallback
+                throw new BusinessException($"Error retrieving alert count: {ex.Message}");
             }
         }
     }

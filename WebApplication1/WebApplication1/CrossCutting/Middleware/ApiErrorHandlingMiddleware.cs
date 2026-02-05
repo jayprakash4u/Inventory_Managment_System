@@ -40,8 +40,13 @@ namespace WebApplication1.CrossCutting.Middleware
 
             switch (exception)
             {
-                case ValidationException validationException:
-                    problemDetails = HandleValidationException(validationException, context);
+                case CustomValidationException customValidationException:
+                    problemDetails = HandleCustomValidationException(customValidationException, context);
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    break;
+
+                case FluentValidation.ValidationException validationException:
+                    problemDetails = HandleFluentValidationException(validationException, context);
                     context.Response.StatusCode = StatusCodes.Status400BadRequest;
                     break;
 
@@ -50,14 +55,24 @@ namespace WebApplication1.CrossCutting.Middleware
                     context.Response.StatusCode = StatusCodes.Status404NotFound;
                     break;
 
+                case UnauthorizedException unauthorizedException:
+                    problemDetails = HandleUnauthorizedException(unauthorizedException, context);
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    break;
+
+                case ForbiddenException forbiddenException:
+                    problemDetails = HandleForbiddenException(forbiddenException, context);
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    break;
+
+                case ConflictException conflictException:
+                    problemDetails = HandleConflictException(conflictException, context);
+                    context.Response.StatusCode = StatusCodes.Status409Conflict;
+                    break;
+
                 case BusinessException businessException:
                     problemDetails = HandleBusinessException(businessException, context);
                     context.Response.StatusCode = businessException.HttpStatusCode;
-                    break;
-
-                case UnauthorizedAccessException unauthorizedException:
-                    problemDetails = HandleUnauthorizedException(unauthorizedException, context);
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                     break;
 
                 case ArgumentException argumentException:
@@ -82,7 +97,7 @@ namespace WebApplication1.CrossCutting.Middleware
             }
 
             // Add correlation ID to response headers
-            context.Response.Headers.Add("X-Correlation-ID", correlationId);
+            context.Response.Headers["X-Correlation-ID"] = correlationId;
 
             // Set content type
             context.Response.ContentType = "application/problem+json";
@@ -110,9 +125,21 @@ namespace WebApplication1.CrossCutting.Middleware
             await context.Response.WriteAsync(result);
         }
 
-        private ValidationProblemDetails HandleValidationException(FluentValidation.ValidationException exception, HttpContext context)
+        private ValidationProblemDetails HandleCustomValidationException(CustomValidationException exception, HttpContext context)
         {
-            _logger.LogWarning(exception, "Validation failed for request: {Path}", context.Request.Path);
+            _logger.LogWarning(exception, "Custom validation failed for request: {Path}", context.Request.Path);
+
+            return new ValidationProblemDetails
+            {
+                Detail = exception.Message,
+                Instance = context.Request.Path,
+                Errors = new Dictionary<string, string[]>(exception.Errors)
+            };
+        }
+
+        private ValidationProblemDetails HandleFluentValidationException(FluentValidation.ValidationException exception, HttpContext context)
+        {
+            _logger.LogWarning(exception, "FluentValidation failed for request: {Path}", context.Request.Path);
 
             var errors = exception.Errors
                 .GroupBy(e => e.PropertyName)
@@ -159,16 +186,41 @@ namespace WebApplication1.CrossCutting.Middleware
             };
         }
 
-        private AuthenticationErrorDetails HandleUnauthorizedException(UnauthorizedAccessException exception, HttpContext context)
+        private AuthenticationErrorDetails HandleUnauthorizedException(UnauthorizedException exception, HttpContext context)
         {
             _logger.LogWarning(exception, "Unauthorized access attempt: {Message}", exception.Message);
 
             return new AuthenticationErrorDetails
             {
-                Detail = "Authentication is required to access this resource.",
+                Detail = exception.Message,
                 Instance = context.Request.Path,
                 Scheme = "Bearer",
                 Realm = "api.productmanagement.com"
+            };
+        }
+
+        private AuthenticationErrorDetails HandleForbiddenException(ForbiddenException exception, HttpContext context)
+        {
+            _logger.LogWarning(exception, "Forbidden access attempt: {Message}", exception.Message);
+
+            return new AuthenticationErrorDetails
+            {
+                Detail = exception.Message,
+                Instance = context.Request.Path,
+                Scheme = "Bearer",
+                Realm = "api.productmanagement.com"
+            };
+        }
+
+        private ConflictErrorDetails HandleConflictException(ConflictException exception, HttpContext context)
+        {
+            _logger.LogWarning(exception, "Conflict occurred: {Message}", exception.Message);
+
+            return new ConflictErrorDetails
+            {
+                Detail = exception.Message,
+                Instance = context.Request.Path,
+                ConflictType = "Conflict"
             };
         }
 

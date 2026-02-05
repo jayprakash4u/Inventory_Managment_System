@@ -9,13 +9,19 @@ namespace WebApplication1.CrossCutting.Filters
         {
             if (!context.ModelState.IsValid)
             {
+
+                //Takes only fields that have errors.
                 var errors = context.ModelState
                     .Where(ms => ms.Value?.Errors.Any() == true)
+
+                    //Convert errors into simple dictionary
                     .ToDictionary(
                         kvp => kvp.Key,
                         kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
                     );
 
+
+               //Creating a proper error response object
                 var problemDetails = new WebApplication1.Presentation.DTOs.Responses.ValidationProblemDetails
                 {
                     Detail = "One or more validation errors occurred.",

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.CrossCutting.Exceptions;
 using WebApplication1.DTOs;
 using WebApplication1.Model;
 using WebApplication1.Services;
@@ -31,6 +32,8 @@ namespace WebApplication1.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
+        [ProducesResponseType(typeof(User), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             _logger.LogInformation("Registration endpoint called for email: {Email}", request.Email);
@@ -39,7 +42,7 @@ namespace WebApplication1.Controllers
             if (existingUser != null)
             {
                 _logger.LogWarning("Registration failed: User already exists with email {Email}", request.Email);
-                return BadRequest("User already exists");
+                throw new ConflictException("Email already exists");
             }
 
             var user = _mapper.Map<User>(request);
@@ -51,6 +54,8 @@ namespace WebApplication1.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
+        [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             _logger.LogInformation("Login attemp for email:{Email}", request.Email);
@@ -59,7 +64,7 @@ namespace WebApplication1.Controllers
             if (user == null)
             {
                 _logger.LogWarning("Login failed for email:{Email}", request.Email);
-                return Unauthorized(new { error = "Invalid credentials", message = "The email or password you entered is incorrect." });
+                throw new UnauthorizedException("Invalid email or password");
             }
 
 
@@ -83,7 +88,7 @@ namespace WebApplication1.Controllers
             if (storedToken == null)
             {
                 _logger.LogWarning("Invalid refresh token provided");
-                return Unauthorized("Invalid refresh token");
+                throw new UnauthorizedException("Invalid refresh token");
             }
 
             // Get user
@@ -91,7 +96,7 @@ namespace WebApplication1.Controllers
             if (user == null)
             {
                 _logger.LogWarning("User not found for refresh token");
-                return Unauthorized("User not found");
+                throw new UnauthorizedException("User not found for the provided refresh token");
             }
 
             // Revoke old refresh token
@@ -118,7 +123,7 @@ namespace WebApplication1.Controllers
                 if (string.IsNullOrEmpty(userEmail))
                 {
                     _logger.LogWarning("Logout failed: User email not found in token");
-                    return BadRequest("User not found in token");
+                    throw new UnauthorizedException("User email not found in token");
                 }
 
                 
@@ -130,7 +135,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error during logout: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error during logout");
+                throw new BusinessException($"Error during logout: {ex.Message}");
             }
         }
     }

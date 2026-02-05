@@ -1,3 +1,4 @@
+using WebApplication1.CrossCutting.Exceptions;
 using WebApplication1.Model;
 using WebApplication1.Repository;
 
@@ -24,7 +25,12 @@ public class CustomerOrderService : ICustomerOrderService
 
     public async Task<CustomerOrder?> GetCustomerOrderByIdAsync(int id)
     {
-        return await _repository.GetCustomerOrderByIdAsync(id);
+        var order = await _repository.GetCustomerOrderByIdAsync(id);
+        if (order == null)
+        {
+            throw new NotFoundException("CustomerOrder", id);
+        }
+        return order;
     }
 
     public async Task UpdateCustomerOrderAsync(CustomerOrder order)

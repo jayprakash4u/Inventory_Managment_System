@@ -13,7 +13,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         _context = context;
     }
 
-    public async Task<RefreshToken> GetByTokenAsync(string token)
+    public async Task<RefreshToken?> GetByTokenAsync(string token)
     {
         return await _context.RefreshTokens
             .FirstOrDefaultAsync(rt => rt.Token == token && !rt.IsRevoked && rt.ExpiresAt > DateTime.UtcNow);

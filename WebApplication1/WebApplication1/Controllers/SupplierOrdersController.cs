@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.CrossCutting.Exceptions;
 using WebApplication1.DTOs;
 using WebApplication1.Model;
 using WebApplication1.Services;
@@ -29,7 +30,6 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> GetSupplierOrder(int id)
         {
             var order = await _service.GetSupplierOrderByIdAsync(id);
-            if (order == null) return NotFound();
             return Ok(order);
         }
 
@@ -55,7 +55,6 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> UpdateSupplierOrder(int id, [FromBody] UpdateSupplierOrderRequest request)
         {
             var order = await _service.GetSupplierOrderByIdAsync(id);
-            if (order == null) return NotFound();
 
             if (request.OrderId != null) order.OrderId = request.OrderId;
             if (request.SupplierName != null) order.SupplierName = request.SupplierName;
@@ -73,8 +72,7 @@ namespace WebApplication1.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSupplierOrder(int id)
         {
-            var order = await _service.GetSupplierOrderByIdAsync(id);
-            if (order == null) return NotFound();
+            await _service.GetSupplierOrderByIdAsync(id); // Will throw if not found
 
             await _service.DeleteSupplierOrderAsync(id);
             return NoContent();

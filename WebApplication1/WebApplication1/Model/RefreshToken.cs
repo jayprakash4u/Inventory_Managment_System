@@ -9,10 +9,10 @@ namespace WebApplication1.Model
         public int Id { get; set; }
 
         [Required]
-        public string Token { get; set; }
+        public required string Token { get; set; }
 
         [Required]
-        public string UserEmail { get; set; }
+        public required string UserEmail { get; set; }
 
         [Required]
         public DateTime ExpiresAt { get; set; }
@@ -23,6 +23,6 @@ namespace WebApplication1.Model
 
         // Navigation property
         [ForeignKey("UserEmail")]
-        public User User { get; set; }
+        public User User { get; set; } = null!;
     }
 }

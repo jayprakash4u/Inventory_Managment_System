@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.CrossCutting.Exceptions;
 using WebApplication1.DTOs.Requests;
 using WebApplication1.DTOs.Responses;
 using WebApplication1.Services.Interfaces;
@@ -40,7 +41,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error getting all configurations: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving configurations");
+                throw new BusinessException($"Error retrieving configurations: {ex.Message}");
             }
         }
 
@@ -60,7 +61,7 @@ namespace WebApplication1.Controllers
                 var config = await _systemConfigService.GetConfigByKeyAsync(key);
                 if (config == null)
                 {
-                    return NotFound(new { message = $"Configuration '{key}' not found" });
+                    throw new NotFoundException($"Configuration '{key}' not found");
                 }
 
                 return Ok(config);
@@ -68,7 +69,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error getting configuration for key '{key}': {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving configuration");
+                throw;
             }
         }
 
@@ -90,7 +91,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error getting configurations for category '{category}': {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving configurations");
+                throw new BusinessException($"Error retrieving configurations: {ex.Message}");
             }
         }
 
@@ -111,7 +112,7 @@ namespace WebApplication1.Controllers
             {
                 if (string.IsNullOrWhiteSpace(key) || request == null)
                 {
-                    return BadRequest("Invalid request parameters");
+                    throw new BusinessException("Invalid request parameters", "VALIDATION_ERROR", 400);
                 }
 
                 var updated = await _systemConfigService.UpdateConfigAsync(key, request);
@@ -119,12 +120,12 @@ namespace WebApplication1.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                throw new NotFoundException(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error updating configuration for key '{key}': {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error updating configuration");
+                throw new BusinessException($"Error updating configuration: {ex.Message}");
             }
         }
 
@@ -143,7 +144,7 @@ namespace WebApplication1.Controllers
             {
                 if (request?.Configurations == null || !request.Configurations.Any())
                 {
-                    return BadRequest("Configurations list cannot be empty");
+                    throw new BusinessException("Configurations list cannot be empty", "VALIDATION_ERROR", 400);
                 }
 
                 var updated = await _systemConfigService.BulkUpdateConfigAsync(request);
@@ -152,7 +153,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error in bulk update: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error updating configurations");
+                throw new BusinessException($"Error updating configurations: {ex.Message}");
             }
         }
 
@@ -174,12 +175,12 @@ namespace WebApplication1.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                throw new NotFoundException(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error resetting configuration for key '{key}': {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error resetting configuration");
+                throw new BusinessException($"Error resetting configuration: {ex.Message}");
             }
         }
 
@@ -200,7 +201,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error resetting all configurations: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error resetting configurations");
+                throw new BusinessException($"Error resetting configurations: {ex.Message}");
             }
         }
 
@@ -221,7 +222,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error getting system health: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving system health");
+                throw new BusinessException($"Error retrieving system health: {ex.Message}");
             }
         }
 
@@ -242,7 +243,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error getting system statistics: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving system statistics");
+                throw new BusinessException($"Error retrieving system statistics: {ex.Message}");
             }
         }
 
@@ -268,7 +269,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error getting activity logs: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving activity logs");
+                throw new BusinessException($"Error retrieving activity logs: {ex.Message}");
             }
         }
 
@@ -287,7 +288,7 @@ namespace WebApplication1.Controllers
             {
                 if (request == null || string.IsNullOrWhiteSpace(request.BackupName))
                 {
-                    return BadRequest("Backup name is required");
+                    throw new BusinessException("Backup name is required", "VALIDATION_ERROR", 400);
                 }
 
                 var backup = await _systemConfigService.CreateBackupAsync(request);
@@ -296,7 +297,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error creating backup: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error creating backup");
+                throw new BusinessException($"Error creating backup: {ex.Message}");
             }
         }
 
@@ -317,7 +318,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error getting backups: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving backups");
+                throw new BusinessException($"Error retrieving backups: {ex.Message}");
             }
         }
 
@@ -336,7 +337,7 @@ namespace WebApplication1.Controllers
             {
                 if (backupId <= 0)
                 {
-                    return BadRequest("Invalid backup ID");
+                    throw new BusinessException("Invalid backup ID", "VALIDATION_ERROR", 400);
                 }
 
                 var result = await _systemConfigService.RestoreBackupAsync(backupId);
@@ -345,7 +346,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error restoring backup {backupId}: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error restoring backup");
+                throw new BusinessException($"Error restoring backup: {ex.Message}");
             }
         }
 
@@ -364,7 +365,7 @@ namespace WebApplication1.Controllers
             {
                 if (backupId <= 0)
                 {
-                    return BadRequest("Invalid backup ID");
+                    throw new BusinessException("Invalid backup ID", "VALIDATION_ERROR", 400);
                 }
 
                 var result = await _systemConfigService.DeleteBackupAsync(backupId);
@@ -373,7 +374,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error deleting backup {backupId}: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting backup");
+                throw new BusinessException($"Error deleting backup: {ex.Message}");
             }
         }
 
@@ -394,7 +395,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error clearing cache: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error clearing cache");
+                throw new BusinessException($"Error clearing cache: {ex.Message}");
             }
         }
 
@@ -415,7 +416,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error retrieving system settings: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving system settings");
+                throw new BusinessException($"Error retrieving system settings: {ex.Message}");
             }
         }
 
@@ -434,28 +435,28 @@ namespace WebApplication1.Controllers
             {
                 if (request == null)
                 {
-                    return BadRequest("Settings request cannot be null");
+                    throw new BusinessException("Settings request cannot be null", "VALIDATION_ERROR", 400);
                 }
 
                 // Validation
                 if (string.IsNullOrWhiteSpace(request.CompanyName))
                 {
-                    return BadRequest("Company name is required");
+                    throw new BusinessException("Company name is required", "VALIDATION_ERROR", 400);
                 }
 
                 if (request.TaxRate < 0 || request.TaxRate > 100)
                 {
-                    return BadRequest("Tax rate must be between 0 and 100");
+                    throw new BusinessException("Tax rate must be between 0 and 100", "VALIDATION_ERROR", 400);
                 }
 
                 if (request.LowStockThreshold < 1)
                 {
-                    return BadRequest("Low stock threshold must be at least 1");
+                    throw new BusinessException("Low stock threshold must be at least 1", "VALIDATION_ERROR", 400);
                 }
 
                 if (request.AuditRetention < 1 || request.AuditRetention > 365)
                 {
-                    return BadRequest("Audit retention must be between 1 and 365 days");
+                    throw new BusinessException("Audit retention must be between 1 and 365 days", "VALIDATION_ERROR", 400);
                 }
 
                 var settings = await _systemConfigService.SaveSystemSettingsAsync(request);
@@ -465,7 +466,7 @@ namespace WebApplication1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error saving system settings: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error saving system settings");
+                throw;
             }
         }
     }

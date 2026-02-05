@@ -115,7 +115,7 @@ function useFallbackData() {
 function renderChart(chartId, config) {
   const chartElement = document.querySelector(`#${chartId}`);
   if (!chartElement) {
-    console.error(`❌ Chart container not found: #${chartId}`);
+    console.error(` Chart container not found: #${chartId}`);
     return;
   }
 
@@ -123,7 +123,7 @@ function renderChart(chartId, config) {
     const chart = new ApexCharts(chartElement, config);
     chart.render();
   } catch (error) {
-    console.error(`❌ Error rendering ${chartId} chart:`, error);
+    console.error(` Error rendering ${chartId} chart:`, error);
   }
 }
 

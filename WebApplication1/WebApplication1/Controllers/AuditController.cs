@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.CrossCutting.Exceptions;
 using WebApplication1.DTOs;
 using WebApplication1.Services;
 using AutoMapper;
@@ -100,7 +101,7 @@ namespace WebApplication1.Controllers
             if (log == null)
             {
                 _logger.LogWarning("Audit log not found: {LogId}", id);
-                return NotFound(new { error = "Audit log not found" });
+                throw new NotFoundException("AuditLog", id);
             }
 
             _logger.LogInformation("Retrieved audit log: {LogId}", id);

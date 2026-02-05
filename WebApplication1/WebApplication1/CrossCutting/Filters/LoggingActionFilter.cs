@@ -18,12 +18,16 @@ namespace WebApplication1.CrossCutting.Filters
             _actionStartTime = DateTime.UtcNow;
 
             var correlationId = context.HttpContext.Items["CorrelationId"]?.ToString() ?? "unknown";
+
+            //Gets the current user's ID from the JWT token or HttpContext
             var userId = GetCurrentUserId(context);
+
             var controller = context.Controller.GetType().Name;
             var action = context.ActionDescriptor.DisplayName;
 
             _logger.LogInformation("[{CorrelationId}] Action executing: {Controller}.{Action} by user {UserId}",
                 correlationId, controller, action, userId ?? "anonymous");
+
 
             // Log action parameters (excluding sensitive data)
             var parameters = new Dictionary<string, object>();
